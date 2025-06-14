@@ -1,8 +1,14 @@
+// app/layout.tsx
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import ConditionalChatInput from "@/middleware/ConditionalChatInput"; // ✅ NEW
 
-// Fonts setup with CSS variable names
+import { ReactNode } from "react";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -25,19 +31,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground transition-colors duration-200`}
       >
-        {/* You can include a Header here if used globally */}
-        <main className="min-h-screen flex flex-col">
-          {children}
-        </main>
+        <Header />
+        <main className="flex-grow">{children}</main>
+
+        {/* ✅ Conditional client-side rendering */}
+        <ConditionalChatInput />
+
+        <Footer />
       </body>
     </html>
   );
