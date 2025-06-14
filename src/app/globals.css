@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+:root {
+  /* Light Mode Colors */
+  --background: 255 255 255;
+  --foreground: 23 23 23;
+
+  --primary: 0 132 255;       /* #0084FF */
+  --primary-foreground: 255 255 255;
+
+  --muted: 243 244 246;       /* Tailwind slate-100 */
+  --muted-foreground: 107 114 128; /* slate-500 */
+
+  --border: 229 231 235;      /* slate-200 */
+  --accent: 0 112 192;
+
+  /* Fonts */
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'Courier New', monospace;
+}
+
+html.dark {
+  /* Dark Mode Colors */
+  --background: 10 10 10;
+  --foreground: 237 237 237;
+
+  --primary: 0 180 255;
+  --primary-foreground: 10 10 10;
+
+  --muted: 31 41 55;          /* slate-800 */
+  --muted-foreground: 156 163 175; /* slate-400 */
+
+  --border: 51 65 85;         /* slate-700 */
+  --accent: 0 112 192;
+}
+
+body {
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: var(--font-sans);
+  transition: background 0.3s ease, color 0.3s ease;
+}
