@@ -6,12 +6,12 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="relative w-full min-h-[90vh] flex items-center justify-center bg-background text-foreground transition-colors duration-300"
+      className="relative w-full min-h-[80vh] mt-5 flex items-center justify-center bg-background text-foreground transition-colors duration-300"
     >
       <div className="max-w-7xl px-4 sm:px-6 lg:px-8 text-center w-full">
         {/* Hero Badge & Heading */}
-        <div className="mb-8">
-          <div className="inline-flex items-center bg-gradient-to-r from-blue-600 to-green-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-md mb-4">
+        <div className="mb-6">
+          <div className="inline-flex items-center bg-gradient-to-r from-blue-600 to-green-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow mb-4">
             <Bot className="w-4 h-4 mr-2" />
             AI-Powered Medical Assistant
           </div>
@@ -23,10 +23,18 @@ const Hero = () => {
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
             Get instant medical guidance in Hinglish. Our AI understands your health concerns and provides
             helpful suggestions for common conditions – from &quot;bukhar&quot; to &quot;pet mein dard.&quot;
           </p>
+
+          {/* Try Chatbot Button */}
+          <a
+            href="#chat" // Adjust based on where your chat input is
+            className="inline-block bg-gradient-to-r from-blue-600 to-green-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:opacity-90 transition mb-10"
+          >
+            💬 Try Chatbot
+          </a>
         </div>
 
         {/* Feature Cards */}

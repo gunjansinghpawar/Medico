@@ -16,6 +16,13 @@ const Features = () => {
       className="px-4 sm:px-6 lg:px-8 py-20 bg-muted/20 dark:bg-muted/10 transition-colors duration-300"
     >
       <div className="max-w-7xl mx-auto">
+        {/* Icon Above Section Heading */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-blue-600 to-green-600 mb-6 shadow">
+            <Zap className="w-10 h-10 text-white" />
+          </div>
+        </div>
+
         {/* Section Heading */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold tracking-tight mb-4 text-foreground">
