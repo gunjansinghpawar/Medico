@@ -19,7 +19,7 @@ const Header = () => {
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "auto";
     return () => {
-      document.body.style.overflow = "auto"; // cleanup on unmount
+      document.body.style.overflow = "hidden"; // cleanup on unmount
     };
   }, [isMobileMenuOpen]);
 
@@ -147,7 +147,7 @@ const Header = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`fixed inset-0 z-40 flex flex-col justify-between bg-opacity-95 backdrop-blur-xl transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed inset-0 z-40 flex flex-col justify-between bg-opacity-95 backdrop-blur-xl transform transition-transform duration-300 overflow-x-hidden ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
         style={{
           background: "rgb(var(--background) / 0.95)",
@@ -182,7 +182,7 @@ const Header = () => {
         </div>
 
         {/* Menu content */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-6">
+        <div className="flex-1 px-4 py-6 overflow-y-auto space-y-6 max-w-full">
           {navItems.map((item, idx) => (
             <div key={idx}>
               <button
