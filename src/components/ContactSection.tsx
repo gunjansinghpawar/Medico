@@ -68,7 +68,7 @@ const ContactSection = () => {
               <div className="text-lg font-semibold mb-6">{method.contact}</div>
               <a
                 href={method.href}
-                className="w-full block bg-gradient-to-r from-blue-600 to-green-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-green-700 transition-all duration-300 flex items-center justify-center space-x-2"
+                className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-green-700 transition-all duration-300 flex items-center justify-center space-x-2"
               >
                 <span>{method.action}</span>
                 <ExternalLink className="w-4 h-4" />
