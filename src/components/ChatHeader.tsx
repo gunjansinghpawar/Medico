@@ -9,7 +9,7 @@ interface ChatHeaderProps {
     showBackButton?: boolean; // Toggle back button visibility
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ setIsSidebarOpen, onBack, showBackButton = false }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ setIsSidebarOpen, onBack, showBackButton }) => {
     return (
         <header
             className="sticky top-0 z-40 w-full backdrop-blur-md border-b border-border transition-all"
@@ -28,13 +28,15 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ setIsSidebarOpen, onBack, showB
                     >
                         <Menu className="w-6 h-6 text-muted-foreground" />
                     </button>
-                    <button
-                        onClick={onBack}
-                        className="p-2 bg-gradient-to-r cursor-pointer from-blue-600 to-green-600 text-white rounded-full transition-colors"
-                        aria-label="Go back"
-                    >
-                        <ArrowLeft className="w-6 h-6" />
-                    </button>
+                    {showBackButton && (
+                        <button
+                            onClick={onBack}
+                            className="p-2 bg-gradient-to-r cursor-pointer from-blue-600 to-green-600 text-white rounded-full transition-colors"
+                            aria-label="Go back"
+                        >
+                            <ArrowLeft className="w-6 h-6" />
+                        </button>
+                    )}
                     {/* Branding */}
                     <div className="flex items-center space-x-3 group">
                         <div className="bg-gradient-to-r from-blue-600 to-green-600 p-2 rounded-xl shadow-md">
