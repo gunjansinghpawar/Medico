@@ -1,13 +1,19 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import ChatInput from "@/components/ChatInput";
+import React from "react";
 
-export default function ConditionalChatInput() {
+interface HideOnRoutesProps {
+  hideOn: string[]; // Routes to hide on (prefix match)
+  children: React.ReactNode;
+}
+
+const HideOnRoutes: React.FC<HideOnRoutesProps> = ({ hideOn, children }) => {
   const pathname = usePathname();
 
-  // Chat input should NOT show on /chat or any sub-route of it
-  const isHidden = pathname.startsWith("/chat");
+  const isHidden = hideOn.some((prefix) => pathname.startsWith(prefix));
 
-  return !isHidden ? <ChatInput /> : null;
-}
+  return isHidden ? null : <>{children}</>;
+};
+
+export default HideOnRoutes;

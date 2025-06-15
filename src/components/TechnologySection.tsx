@@ -9,7 +9,7 @@ const TechnologySection = () => {
             id="technology"
             className="px-4 sm:px-6 lg:px-8 py-20 bg-muted/10 text-foreground transition-colors duration-300"
         >
-            <div className="max-w-7xl mx-auto bg-background rounded-3xl p-10 md:p-14 shadow-xl border border-[rgb(var(--border))]">
+            <div className="max-w-7xl mx-auto bg-[rgb(var(--muted))] rounded-3xl p-10 md:p-14 shadow-xl border border-[rgb(var(--border))]">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                     {/* Left Content */}
                     <div>
@@ -28,8 +28,8 @@ const TechnologySection = () => {
                                 "Multi-language support",
                             ].map((item, index) => (
                                 <li key={index} className="flex items-center space-x-3">
-                                    <div className="w-7 h-7 rounded-full flex items-center justify-center border border-green-300 dark:border-green-700 shadow-sm bg-white dark:bg-green-900/20">
-                                        <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                    <div className="w-7 h-7 rounded-full flex items-center justify-center border border-green-600 shadow-sm bg-green-200/20">
+                                        <CheckCircle className="w-4 h-4 text-green-600" />
                                     </div>
                                     <span className="text-foreground text-sm sm:text-base">{item}</span>
                                 </li>

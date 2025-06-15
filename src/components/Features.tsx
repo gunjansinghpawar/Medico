@@ -38,7 +38,7 @@ const Features = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-background/80 dark:bg-white/5 backdrop-blur-md p-8 rounded-2xl shadow-lg border border-[rgb(var(--border))] hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="bg-[rgb(var(--muted))] backdrop-blur-md p-8 rounded-2xl shadow-lg border border-[rgb(var(--border))] hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
               <div
                 className={`w-12 h-12 rounded-xl flex items-center justify-center mb-6 ${feature.bg}`}
@@ -60,13 +60,12 @@ const Features = () => {
 };
 
 export default Features;
-
 // Feature Data
 const features = [
   {
     title: "Natural Conversations",
     description:
-      "Communicate in Hinglish naturally. Ask 'mujhe bukhar hai' or 'stomach pain ho raha hai' and get instant understanding.",
+      "Talk to the AI naturally, just like you would to a friend. Describe your symptoms in plain English and get helpful responses instantly.",
     icon: MessageCircle,
     bg: "bg-blue-100 dark:bg-blue-900/20",
     color: "text-blue-600 dark:text-blue-400",
@@ -74,7 +73,7 @@ const features = [
   {
     title: "Smart Diagnosis",
     description:
-      "AI-powered symptom analysis to predict common conditions like viral fever, cold, headaches, and digestive issues.",
+      "AI-powered symptom analysis helps identify common conditions like viral fever, cold, headaches, and digestive issues.",
     icon: Brain,
     bg: "bg-green-100 dark:bg-green-900/20",
     color: "text-green-600 dark:text-green-400",
@@ -82,7 +81,7 @@ const features = [
   {
     title: "Personalized Remedies",
     description:
-      "Get tailored home remedies and self-care suggestions based on your specific symptoms and condition.",
+      "Get tailored home remedies and self-care suggestions based on your symptoms and condition.",
     icon: Heart,
     bg: "bg-purple-100 dark:bg-purple-900/20",
     color: "text-purple-600 dark:text-purple-400",
@@ -90,7 +89,7 @@ const features = [
   {
     title: "Safety First",
     description:
-      "Always includes medical disclaimers and encourages consulting healthcare professionals for serious conditions.",
+      "Includes medical disclaimers and always recommends consulting a doctor for serious or unclear conditions.",
     icon: Shield,
     bg: "bg-orange-100 dark:bg-orange-900/20",
     color: "text-orange-600 dark:text-orange-400",
@@ -98,7 +97,7 @@ const features = [
   {
     title: "Instant Response",
     description:
-      "Get immediate health guidance without waiting. Our AI processes your queries in real-time for quick assistance.",
+      "Receive immediate answers and health guidance. Our AI processes your input in real time for fast support.",
     icon: Zap,
     bg: "bg-teal-100 dark:bg-teal-900/20",
     color: "text-teal-600 dark:text-teal-400",
@@ -106,9 +105,10 @@ const features = [
   {
     title: "Accessible Everywhere",
     description:
-      "Web-based platform accessible on any device. No app downloads required – just open your browser and start chatting.",
+      "Use on any device, anytime. No need to install anything—just open your browser and start chatting.",
     icon: Globe,
     bg: "bg-indigo-100 dark:bg-indigo-900/20",
     color: "text-indigo-600 dark:text-indigo-400",
   },
 ];
+

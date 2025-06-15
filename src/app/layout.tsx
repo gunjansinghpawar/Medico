@@ -5,9 +5,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ConditionalChatInput from "@/middleware/ConditionalChatInput"; // ✅ NEW
-
+import HideOnRoutes from "@/middleware/ConditionalChatInput";
 import { ReactNode } from "react";
+import ChatInputForHomepage from "@/components/ChatInputForHomepage";
+import GoToTop from "@/components/GoToTop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,13 +40,19 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground transition-colors duration-200`}
       >
-        <Header />
+        <HideOnRoutes hideOn={["/chat"]}>
+          <Header />
+        </HideOnRoutes>
         <main className="flex-grow">{children}</main>
-
-        {/* ✅ Conditional client-side rendering */}
-        <ConditionalChatInput />
-
-        <Footer />
+        <HideOnRoutes hideOn={["/chat"]}>
+          <ChatInputForHomepage />
+        </HideOnRoutes>
+        <HideOnRoutes hideOn={["/chat"]}>
+          <GoToTop />
+        </HideOnRoutes>
+        <HideOnRoutes hideOn={["/chat"]}>
+          <Footer />
+        </HideOnRoutes>
       </body>
     </html>
   );

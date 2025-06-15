@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Menu, X, Moon, Sun, Stethoscope } from "lucide-react";
+import { Menu, X, Stethoscope, ChevronDown } from "lucide-react";
+import ThemeToggleSwitch from "./ThemeToggleSwitch";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState<number[]>([]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -14,19 +15,18 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Handle body overflow when mobile menu is open
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-      setIsDarkMode(true);
-    }
-  }, []);
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "auto";
+    return () => {
+      document.body.style.overflow = "auto"; // cleanup on unmount
+    };
+  }, [isMobileMenuOpen]);
 
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    document.documentElement.classList.toggle("dark", newMode);
-    localStorage.setItem("theme", newMode ? "dark" : "light");
+  const toggleDropdown = (index: number) => {
+    setOpenDropdowns((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
   };
 
   const navItems = [
@@ -77,7 +77,10 @@ const Header = () => {
           </div>
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent group-hover:animate-pulse transition">
-              Medico<span className="text-base ml-1 text-muted-foreground font-medium">AI</span>
+              Medico
+              <span className="text-base ml-1 text-muted-foreground font-medium">
+                AI
+              </span>
             </h1>
             <p className="text-sm text-muted-foreground font-medium leading-none">
               Medical Healthbot
@@ -96,15 +99,8 @@ const Header = () => {
                 {item.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-green-600 transition-all group-hover:w-full"></span>
               </a>
-
               {item.subItems && (
-                <div
-                  className="absolute left-0 mt-2 w-56 rounded-xl border border-[rgb(var(--border))] shadow-lg
-                  bg-white dark:bg-[rgb(var(--muted))]
-                  dark:border-[rgba(255,255,255,0.15)]
-                  dark:shadow-[0_4px_20px_rgba(0,180,255,0.2)]
-                  opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-200 z-50"
-                >
+                <div className="absolute left-0 mt-2 w-56 rounded-xl border border-border shadow-lg bg-background dark:bg-muted opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-200 z-50">
                   <ul className="py-2">
                     {item.subItems.map((subItem, sIdx) => (
                       <li key={sIdx}>
@@ -121,8 +117,6 @@ const Header = () => {
               )}
             </div>
           ))}
-
-          {/* Auth Buttons */}
           <a
             href="/login"
             className="px-4 py-2 rounded-lg text-sm font-semibold border border-border hover:border-blue-500 text-blue-600 hover:text-white hover:bg-gradient-to-r from-blue-600 to-green-600 transition"
@@ -135,61 +129,91 @@ const Header = () => {
           >
             Sign Up
           </a>
-
-          {/* Dark mode toggle */}
-          <button
-            onClick={toggleDarkMode}
-            title="Toggle Theme"
-            className={`ml-3 relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 shadow-md group
-              ${isDarkMode
-                ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white"
-                : "bg-gradient-to-br from-yellow-400 via-orange-400 to-pink-500 text-white"
-              }`}
-          >
-            <span className="absolute inset-0 rounded-full blur-md opacity-30 group-hover:opacity-50 transition-all duration-300" />
-            {isDarkMode ? <Sun size={20} className="z-10" /> : <Moon size={20} className="z-10" />}
-          </button>
+          <ThemeToggleSwitch />
         </nav>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggleSwitch />
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 rounded-md hover:bg-muted transition"
+            aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden px-4 pb-4 pt-2 space-y-3">
+      {/* Mobile Menu */}
+      <div
+        className={`fixed inset-0 z-40 flex flex-col justify-between bg-opacity-95 backdrop-blur-xl transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        style={{
+          background: "rgb(var(--background) / 0.95)",
+          color: "rgb(var(--foreground))",
+        }}
+      >
+        {/* Top bar with close */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <div className="flex items-center space-x-3 group">
+            <div className="bg-gradient-to-r from-blue-600 to-green-600 p-2 rounded-xl shadow-md">
+              <Stethoscope className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent group-hover:animate-pulse transition">
+                Medico
+                <span className="text-base ml-1 text-muted-foreground font-medium">
+                  AI
+                </span>
+              </h1>
+              <p className="text-sm text-muted-foreground font-medium leading-none">
+                Medical Healthbot
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 rounded-md hover:bg-muted transition"
+            aria-label="Close menu"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Menu content */}
+        <div className="flex-1 p-6 overflow-y-auto space-y-6">
           {navItems.map((item, idx) => (
             <div key={idx}>
-              <a
-                href={item.href}
-                className="block font-medium text-muted-foreground hover:text-primary transition"
+              <button
+                className="w-full flex justify-between items-center font-semibold text-lg text-foreground hover:text-primary"
+                onClick={() => toggleDropdown(idx)}
               >
                 {item.label}
-              </a>
-              {item.subItems && (
-                <div className="ml-4 mt-1 space-y-1">
+                {item.subItems && (
+                  <ChevronDown
+                    className={`transform transition ${openDropdowns.includes(idx) ? "rotate-180" : ""
+                      }`}
+                  />
+                )}
+              </button>
+              {item.subItems && openDropdowns.includes(idx) && (
+                <ul className="pl-4 mt-2 space-y-2">
                   {item.subItems.map((subItem, sIdx) => (
-                    <a
-                      key={sIdx}
-                      href={subItem.href}
-                      className="block text-sm text-muted-foreground hover:text-primary transition"
-                    >
-                      ↳ {subItem.label}
-                    </a>
+                    <li key={sIdx}>
+                      <a
+                        href={subItem.href}
+                        className="block text-sm transition text-foreground hover:text-primary"
+                      >
+                        ↳ {subItem.label}
+                      </a>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </div>
           ))}
 
-          {/* Auth Buttons */}
           <a
             href="/login"
             className="block px-4 py-2 rounded-md text-sm border border-border hover:border-blue-500 text-blue-600 hover:text-white hover:bg-gradient-to-r from-blue-600 to-green-600 transition"
@@ -202,16 +226,8 @@ const Header = () => {
           >
             Sign Up
           </a>
-
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleDarkMode}
-            className="w-full mt-2 px-4 py-2 rounded-md text-sm text-center hover:bg-muted transition"
-          >
-            {isDarkMode ? "🌞 Light Mode" : "🌙 Dark Mode"}
-          </button>
         </div>
-      )}
+      </div>
     </header>
   );
 };

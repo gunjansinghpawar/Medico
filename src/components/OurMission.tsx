@@ -23,7 +23,7 @@ const OurMission = () => {
         {/* Mission Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Card 1 */}
-          <div className="bg-background/80 dark:bg-white/5 backdrop-blur-md p-8 rounded-2xl shadow-md border border-[rgb(var(--border))] text-center hover:shadow-xl transition-all duration-300">
+          <div className="bg-[rgb(var(--muted))] backdrop-blur-md p-8 rounded-2xl shadow-md border border-[rgb(var(--border))] text-center hover:shadow-xl transition-all duration-300">
             <Users className="w-12 h-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-foreground mb-3">
               Community Driven
@@ -34,7 +34,7 @@ const OurMission = () => {
           </div>
 
           {/* Card 2 */}
-          <div className="bg-background/80 dark:bg-white/5 backdrop-blur-md p-8 rounded-2xl shadow-md border border-[rgb(var(--border))] text-center hover:shadow-xl transition-all duration-300">
+          <div className="bg-[rgb(var(--muted))] backdrop-blur-md p-8 rounded-2xl shadow-md border border-[rgb(var(--border))] text-center hover:shadow-xl transition-all duration-300">
             <Heart className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-foreground mb-3">
               Healthcare for All
@@ -45,7 +45,7 @@ const OurMission = () => {
           </div>
 
           {/* Card 3 */}
-          <div className="bg-background/80 dark:bg-white/5 backdrop-blur-md p-8 rounded-2xl shadow-md border border-[rgb(var(--border))] text-center hover:shadow-xl transition-all duration-300">
+          <div className="bg-[rgb(var(--muted))] backdrop-blur-md p-8 rounded-2xl shadow-md border border-[rgb(var(--border))] text-center hover:shadow-xl transition-all duration-300">
             <Shield className="w-12 h-12 text-green-600 dark:text-green-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-foreground mb-3">
               Safe & Reliable

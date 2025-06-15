@@ -49,7 +49,7 @@ const KeyFeature = () => {
         {features.map((feature, index) => (
           <div
             key={index}
-            className="bg-white/70 dark:bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-[rgb(var(--border))] shadow-sm hover:shadow-lg transition-all duration-300"
+            className="bg-[rgb(var(--muted))] backdrop-blur-md p-6 rounded-2xl border border-[rgb(var(--border))] shadow-sm hover:shadow-lg transition-all duration-300"
           >
             <div className="flex items-start space-x-5">
               <div

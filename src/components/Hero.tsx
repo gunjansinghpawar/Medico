@@ -24,8 +24,8 @@ const Hero = () => {
           </h1>
 
           <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            Get instant medical guidance in Hinglish. Our AI understands your health concerns and provides
-            helpful suggestions for common conditions – from &quot;bukhar&quot; to &quot;pet mein dard.&quot;
+            Get instant medical guidance in simple English. Our AI understands your symptoms and provides
+            useful suggestions for common conditions – from fever to stomach pain.
           </p>
 
           {/* Try Chatbot Button */}
@@ -39,23 +39,23 @@ const Hero = () => {
 
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white/70 dark:bg-white/10 backdrop-blur-md p-6 rounded-xl shadow-sm border border-[rgb(var(--border))] hover:shadow-md transition-all duration-300">
+          <div className="bg-[rgb(var(--muted))] backdrop-blur-md p-6 rounded-xl shadow-sm border border-[rgb(var(--border))] hover:shadow-md transition-all duration-300">
             <Languages className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-3 mx-auto" />
-            <h3 className="font-semibold text-lg mb-2">Hinglish Support</h3>
+            <h3 className="font-semibold text-lg mb-2">Multilingual Support</h3>
             <p className="text-sm text-muted-foreground">
-              Natural conversation in Hindi and English mixed language
+              Communicate naturally in English and other regional languages
             </p>
           </div>
-          <div className="bg-white/70 dark:bg-white/10 backdrop-blur-md p-6 rounded-xl shadow-sm border border-[rgb(var(--border))] hover:shadow-md transition-all duration-300">
+          <div className="bg-[rgb(var(--muted))] backdrop-blur-md p-6 rounded-xl shadow-sm border border-[rgb(var(--border))] hover:shadow-md transition-all duration-300">
             <Brain className="w-8 h-8 text-green-600 dark:text-green-400 mb-3 mx-auto" />
             <h3 className="font-semibold text-lg mb-2">AI-Powered</h3>
             <p className="text-sm text-muted-foreground">
-              Advanced ML models trained on medical datasets
+              Advanced machine learning models trained on trusted medical data
             </p>
           </div>
-          <div className="bg-white/70 dark:bg-white/10 backdrop-blur-md p-6 rounded-xl shadow-sm border border-[rgb(var(--border))] hover:shadow-md transition-all duration-300">
+          <div className="bg-[rgb(var(--muted))] backdrop-blur-md p-6 rounded-xl shadow-sm border border-[rgb(var(--border))] hover:shadow-md transition-all duration-300">
             <Clock className="w-8 h-8 text-purple-600 dark:text-purple-400 mb-3 mx-auto" />
-            <h3 className="font-semibold text-lg mb-2">24/7 Available</h3>
+            <h3 className="font-semibold text-lg mb-2">Available 24/7</h3>
             <p className="text-sm text-muted-foreground">
               Get health guidance anytime, anywhere
             </p>
