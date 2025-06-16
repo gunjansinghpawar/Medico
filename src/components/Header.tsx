@@ -28,47 +28,41 @@ const Header = () => {
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
-
+  console.log(toggleDropdown);
   const navItems = [
     {
-      label: "Features",
-      href: "#features",
-      subItems: [
-        { label: "Symptom Checker", href: "#symptom" },
-        { label: "Voice Support", href: "#voice" },
-      ],
+      label: "Home",
+      href: "/",
     },
     {
-      label: "Technology",
-      href: "#technology",
-      subItems: [
-        { label: "Frontend", href: "#frontend" },
-        { label: "Backend", href: "#backend" },
-        { label: "ML Models", href: "#models" },
-      ],
+      label: "About",
+      href: "/about",
     },
-    { label: "Team", href: "#team" },
+    { label: "Team", href: "/teams" },
     {
       label: "Blogs",
-      href: "#blogs",
+      href: "/blog",
+    },
+    {
+      label: "News",
+      href: "/news",
       subItems: [
-        { label: "Latest", href: "#latest" },
-        { label: "Trending", href: "#trending" },
+        { label: "Press Releases", href: "/news/press-releases" },
+        { label: "Media Coverage", href: "/news/media-coverage" },
       ],
     },
-    { label: "News", href: "#news" },
   ];
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${isScrolled ? "backdrop-blur-md shadow-md" : ""
-        }`}
+      className={`fixed top-0 left-0 z-50 w-full transition-all duration-300 ${isScrolled ? "backdrop-blur-md shadow-md" : ""}`}
       style={{
         background: "rgb(var(--background) / 0.85)",
         color: "rgb(var(--foreground))",
         borderBottom: "1px solid rgb(var(--border))",
       }}
     >
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-3 group">
@@ -146,13 +140,13 @@ const Header = () => {
       </div>
 
       {/* Mobile Menu */}
-            <div
+      <div
         className={`fixed inset-0 z-40 flex flex-col justify-between bg-opacity-95 backdrop-blur-xl transform transition-transform duration-300 ease-in-out overflow-x-hidden ${isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"}`}
         style={{
           background: "rgb(var(--background) / 0.95)",
           color: "rgb(var(--foreground))",
         }}
->
+      >
 
         {/* Top bar with close */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
@@ -185,9 +179,9 @@ const Header = () => {
         <div className="flex-1 px-4 py-6 overflow-y-auto space-y-6 max-w-full">
           {navItems.map((item, idx) => (
             <div key={idx}>
-              <button
-                className="w-full flex justify-between items-center font-semibold text-lg text-foreground hover:text-primary"
-                onClick={() => toggleDropdown(idx)}
+              <a
+                className="w-full flex cursor-pointer justify-between items-center font-semibold text-lg text-foreground hover:text-primary"
+                href={item.href}
               >
                 {item.label}
                 {item.subItems && (
@@ -196,7 +190,7 @@ const Header = () => {
                       }`}
                   />
                 )}
-              </button>
+              </a>
               {item.subItems && openDropdowns.includes(idx) && (
                 <ul className="pl-4 mt-2 space-y-2">
                   {item.subItems.map((subItem, sIdx) => (

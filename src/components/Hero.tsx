@@ -6,32 +6,31 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="relative w-full min-h-[80vh] mt-5 flex items-center justify-center bg-background text-foreground transition-colors duration-300"
+      className="relative w-full flex items-center justify-center bg-background text-foreground transition-colors duration-300 py-20"
     >
-      <div className="max-w-7xl px-4 sm:px-6 lg:px-8 text-center w-full">
+      <div className="max-w-7xl px-4 sm:px-6 lg:px-8 text-center w-full flex flex-col justify-center gap-12">
         {/* Hero Badge & Heading */}
-        <div className="mb-6">
-          <div className="inline-flex items-center bg-gradient-to-r from-blue-600 to-green-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow mb-4">
+        <div>
+          <div className="inline-flex items-center bg-gradient-to-r from-blue-600 to-green-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow mb-6">
             <Bot className="w-4 h-4 mr-2" />
             AI-Powered Medical Assistant
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 leading-snug">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 leading-tight md:leading-snug">
             Your Health, Our{" "}
             <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
               AI Companion
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
             Get instant medical guidance in simple English. Our AI understands your symptoms and provides
             useful suggestions for common conditions – from fever to stomach pain.
           </p>
 
-          {/* Try Chatbot Button */}
           <a
-            href="#chat" // Adjust based on where your chat input is
-            className="inline-block bg-gradient-to-r from-blue-600 to-green-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:opacity-90 transition mb-10"
+            href="#chat"
+            className="inline-block bg-gradient-to-r from-blue-600 to-green-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:opacity-90 transition"
           >
             💬 Try Chatbot
           </a>

@@ -44,10 +44,10 @@ export default function RootLayout({
           <Header />
         </HideOnRoutes>
         <main className="flex-grow">{children}</main>
-        <HideOnRoutes hideOn={["/chat"]}>
+        <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
           <ChatInputForHomepage />
         </HideOnRoutes>
-        <HideOnRoutes hideOn={["/chat"]}>
+        <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
           <GoToTop />
         </HideOnRoutes>
         <HideOnRoutes hideOn={["/chat"]}>

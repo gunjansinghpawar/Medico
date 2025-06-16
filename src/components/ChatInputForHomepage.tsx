@@ -16,7 +16,7 @@ const ChatInputForHomepage: React.FC = () => {
   return (
     <>
       {/* Desktop Input - visible on md and above */}
-      <div className="hidden md:block fixed bottom-15 left-0 right-0 bg-background/95 backdrop-blur-md border border-[rgb(var(--border))] mx-auto max-w-4xl rounded-2xl px-4 py-3 shadow-2xl z-50">
+      <div className="hidden md:block fixed bottom-20 left-0 right-0 bg-background/95 backdrop-blur-md border border-[rgb(var(--border))] mx-auto max-w-4xl rounded-2xl px-4 py-3 shadow-2xl z-50">
         <form onSubmit={handleSubmit} className="flex space-x-4">
           <div className="flex-1 relative">
             <input
@@ -44,7 +44,7 @@ const ChatInputForHomepage: React.FC = () => {
       </div>
 
       {/* Mobile Input - visible only below md */}
-      <div className="block md:hidden fixed bottom-15 left-4 right-4 z-50">
+      <div className="block md:hidden fixed bottom-20 left-4 right-4 z-50">
         <form
           onSubmit={handleSubmit}
           className="flex items-center bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-full px-4 py-2 shadow-lg space-x-2"
