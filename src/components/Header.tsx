@@ -146,14 +146,14 @@ const Header = () => {
       </div>
 
       {/* Mobile Menu */}
-      <div
-        className={`fixed inset-0 z-40 flex flex-col justify-between bg-opacity-95 backdrop-blur-xl transform transition-transform duration-300 overflow-x-hidden ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+            <div
+        className={`fixed inset-0 z-40 flex flex-col justify-between bg-opacity-95 backdrop-blur-xl transform transition-transform duration-300 ease-in-out overflow-x-hidden ${isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"}`}
         style={{
           background: "rgb(var(--background) / 0.95)",
           color: "rgb(var(--foreground))",
         }}
-      >
+>
+
         {/* Top bar with close */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center space-x-3 group">

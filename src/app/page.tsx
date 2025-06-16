@@ -11,7 +11,7 @@ import ContactSection from "@/components/ContactSection";
 export default function Home() {
   return (
     <>
-      <div className="relative bg-background text-foreground transition-colors duration-300 overflow-x-hidden">
+      <div className="relative bg-background text-foreground transition-colors duration-300 overflow">
         {/* <CustomCursor /> */}
         <Hero />
         <Features />
