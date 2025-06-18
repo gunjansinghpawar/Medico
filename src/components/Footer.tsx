@@ -8,6 +8,44 @@ import {
   Stethoscope,
 } from "lucide-react";
 
+const footerLinks = {
+  product: [
+    { name: "How It Works", href: "/how-it-works" },
+    { name: "Features", href: "/features" },
+    { name: "Pricing", href: "/pricing" },
+    { name: "API Documentation", href: "/docs/api" },
+    { name: "Integrations", href: "/integrations" },
+  ],
+  company: [
+    { name: "About Us", href: "/about" },
+    { name: "Careers", href: "/careers" },
+    { name: "Press", href: "/press" },
+    { name: "Blog", href: "/blog" },
+    { name: "Partners", href: "/partners" },
+  ],
+  support: [
+    { name: "Help Center", href: "/help" },
+    { name: "Contact Us", href: "/contact" },
+    { name: "Privacy Policy", href: "/privacy" },
+    { name: "Terms of Service", href: "/terms" },
+    { name: "HIPAA Compliance", href: "/hipaa" },
+  ],
+};
+
+const socialLinks = [
+  { icon: Facebook, href: "https://facebook.com" },
+  { icon: Twitter, href: "https://twitter.com" },
+  { icon: Linkedin, href: "https://linkedin.com" },
+  { icon: Instagram, href: "https://instagram.com" },
+];
+
+const policyLinks = [
+  { name: "Privacy", href: "/privacy" },
+  { name: "Terms", href: "/terms" },
+  { name: "Cookies", href: "/cookies" },
+  { name: "Accessibility", href: "/accessibility" },
+];
+
 const Footer = () => {
   return (
     <footer className="bg-gray-900 text-white">
@@ -29,79 +67,38 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-gray-400 mb-6 leading-relaxed">
-              Empowering individuals with intelligent health guidance through
-              advanced AI technology. Your trusted companion for better health
-              decisions.
+              Empowering individuals with intelligent health guidance through advanced AI technology. Your trusted companion for better health decisions.
             </p>
             <div className="flex space-x-4">
-              <a
-                href="#"
-                className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition"
-              >
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-400 transition"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-700 transition"
-              >
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-pink-600 transition"
-              >
-                <Instagram className="w-5 h-5" />
-              </a>
+              {socialLinks.map(({ icon: Icon, href }, idx) => (
+                <a
+                  key={idx}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition"
+                >
+                  <Icon className="w-5 h-5" />
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Product Links */}
-          <div>
-            <h4 className="text-lg font-bold mb-6">Product</h4>
-            <ul className="space-y-3 text-gray-400">
-              {["How It Works", "Features", "Pricing", "API Documentation", "Integrations"].map((item) => (
-                <li key={item}>
-                  <a href="#" className="hover:text-white transition">
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company Links */}
-          <div>
-            <h4 className="text-lg font-bold mb-6">Company</h4>
-            <ul className="space-y-3 text-gray-400">
-              {["About Us", "Careers", "Press", "Blog", "Partners"].map((item) => (
-                <li key={item}>
-                  <a href="#" className="hover:text-white transition">
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Support Links */}
-          <div>
-            <h4 className="text-lg font-bold mb-6">Support</h4>
-            <ul className="space-y-3 text-gray-400">
-              {["Help Center", "Contact Us", "Privacy Policy", "Terms of Service", "HIPAA Compliance"].map((item) => (
-                <li key={item}>
-                  <a href="#" className="hover:text-white transition">
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Dynamic Link Columns */}
+          {Object.entries(footerLinks).map(([section, links]) => (
+            <div key={section}>
+              <h4 className="text-lg font-bold mb-6 capitalize">{section}</h4>
+              <ul className="space-y-3 text-gray-400">
+                {links.map(({ name, href }) => (
+                  <li key={name}>
+                    <a href={href} className="hover:text-white transition">
+                      {name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         {/* Bottom Bar */}
@@ -112,9 +109,9 @@ const Footer = () => {
               <span>© 2025 HealthBot AI. All rights reserved.</span>
             </div>
             <div className="flex items-center space-x-6">
-              {["Privacy", "Terms", "Cookies", "Accessibility"].map((item) => (
-                <a key={item} href="#" className="hover:text-white transition">
-                  {item}
+              {policyLinks.map(({ name, href }) => (
+                <a key={name} href={href} className="hover:text-white transition">
+                  {name}
                 </a>
               ))}
             </div>

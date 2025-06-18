@@ -1,17 +1,27 @@
 'use client';
 
 import React from 'react';
-import { Menu, Bot, LogIn, ArrowLeft } from 'lucide-react';
+import {
+    Menu,
+    Bot,
+    LogIn,
+    // ArrowLeft
+} from 'lucide-react';
 
 interface ChatHeaderProps {
     setIsSidebarOpen: (open: boolean) => void;
-    onBack?: () => void; // Optional back action
-    showBackButton?: boolean; // Toggle back button visibility
+    onBack?: () => void;
+    showBackButton?: boolean;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ setIsSidebarOpen, onBack, showBackButton }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({
+    setIsSidebarOpen,
+    //   onBack,
+    //   showBackButton,
+}) => {
     return (
         <header
+            role="banner"
             className="sticky top-0 z-40 w-full backdrop-blur-md border-b border-border transition-all"
             style={{
                 background: 'rgb(var(--background) / 0.85)',
@@ -19,24 +29,28 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ setIsSidebarOpen, onBack, showB
             }}
         >
             <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                {/* Left: Back Arrow or Sidebar Toggle + Branding */}
+                {/* Left: Sidebar Toggle or Back Button + Branding */}
                 <div className="flex items-center space-x-4">
+                    {/* Sidebar Toggle (Mobile) */}
                     <button
                         onClick={() => setIsSidebarOpen(true)}
                         className="p-2 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-full transition-colors lg:hidden"
                         aria-label="Open sidebar"
                     >
-                        <Menu className="w-6 h-6 text-muted-foreground" />
+                        <Menu className="w-6 h-6 text-white" />
                     </button>
-                    {showBackButton && (
-                        <button
-                            onClick={onBack}
-                            className="p-2 bg-gradient-to-r cursor-pointer from-blue-600 to-green-600 text-white rounded-full transition-colors"
-                            aria-label="Go back"
-                        >
-                            <ArrowLeft className="w-6 h-6" />
-                        </button>
-                    )}
+
+                    {/* Optional Back Button */}
+                    {/* {showBackButton && (
+            <button
+              onClick={onBack}
+              className="p-2 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-full transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+          )} */}
+
                     {/* Branding */}
                     <div className="flex items-center space-x-3 group">
                         <div className="bg-gradient-to-r from-blue-600 to-green-600 p-2 rounded-xl shadow-md">
@@ -53,7 +67,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ setIsSidebarOpen, onBack, showB
                     </div>
                 </div>
 
-                {/* Right: Theme Toggle, Online Status, Login */}
+                {/* Right: Status & Login */}
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
                         <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full animate-pulse" />

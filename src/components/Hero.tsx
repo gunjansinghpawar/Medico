@@ -6,7 +6,7 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="relative w-full flex items-center justify-center bg-background text-foreground transition-colors duration-300 py-20"
+      className="relative w-full mt-10 flex items-center justify-center bg-background text-foreground transition-colors duration-300 py-20"
     >
       <div className="max-w-7xl px-4 sm:px-6 lg:px-8 text-center w-full flex flex-col justify-center gap-12">
         {/* Hero Badge & Heading */}
@@ -15,7 +15,6 @@ const Hero = () => {
             <Bot className="w-4 h-4 mr-2" />
             AI-Powered Medical Assistant
           </div>
-
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 leading-tight md:leading-snug">
             Your Health, Our{" "}
             <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
@@ -29,7 +28,7 @@ const Hero = () => {
           </p>
 
           <a
-            href="#chat"
+            href="/chat"
             className="inline-block bg-gradient-to-r from-blue-600 to-green-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:opacity-90 transition"
           >
             💬 Try Chatbot

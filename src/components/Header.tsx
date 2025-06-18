@@ -15,14 +15,6 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Handle body overflow when mobile menu is open
-  useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "auto";
-    return () => {
-      document.body.style.overflow = "hidden"; // cleanup on unmount
-    };
-  }, [isMobileMenuOpen]);
-
   const toggleDropdown = (index: number) => {
     setOpenDropdowns((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
@@ -51,6 +43,11 @@ const Header = () => {
         { label: "Media Coverage", href: "/news/media-coverage" },
       ],
     },
+    {
+      label: "Contact",
+      href: "/contact",
+    },
+    
   ];
 
   return (
@@ -141,7 +138,7 @@ const Header = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`fixed inset-0 z-40 flex flex-col justify-between bg-opacity-95 backdrop-blur-xl transform transition-transform duration-300 ease-in-out overflow-x-hidden ${isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"}`}
+        className={`fixed w-full min-h-[100vh] inset-0 z-40 flex flex-col justify-between bg-opacity-95 backdrop-blur-xl transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"}`}
         style={{
           background: "rgb(var(--background) / 0.95)",
           color: "rgb(var(--foreground))",

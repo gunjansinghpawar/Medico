@@ -25,14 +25,14 @@ const About = () => {
         }
     ];
 
-    const milestones = [
-        { year: "2020", title: "Company Founded", description: "Started with a vision to democratize healthcare information through AI" },
-        { year: "2021", title: "First AI Model", description: "Launched our first medical AI trained on peer-reviewed literature" },
-        { year: "2022", title: "1M Users", description: "Reached our first million users milestone with 99% satisfaction rate" },
-        { year: "2023", title: "HIPAA Compliance", description: "Achieved full HIPAA compliance and enterprise-grade security" },
-        { year: "2024", title: "Global Expansion", description: "Expanded to 50+ countries with multi-language support" },
-        { year: "2025", title: "Advanced AI", description: "Launched next-generation AI with 99.7% accuracy rate" }
-    ];
+    // const milestones = [
+    //     { year: "2020", title: "Company Founded", description: "Started with a vision to democratize healthcare information through AI" },
+    //     { year: "2021", title: "First AI Model", description: "Launched our first medical AI trained on peer-reviewed literature" },
+    //     { year: "2022", title: "1M Users", description: "Reached our first million users milestone with 99% satisfaction rate" },
+    //     { year: "2023", title: "HIPAA Compliance", description: "Achieved full HIPAA compliance and enterprise-grade security" },
+    //     { year: "2024", title: "Global Expansion", description: "Expanded to 50+ countries with multi-language support" },
+    //     { year: "2025", title: "Advanced AI", description: "Launched next-generation AI with 99.7% accuracy rate" }
+    // ];
 
     const stats = [
         { number: "10M+", label: "Conversations" },
@@ -123,7 +123,7 @@ const About = () => {
             </div>
 
             {/* Our Journey */}
-            <div className="bg-background py-20">
+            {/* <div className="bg-background py-20">
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl font-bold mb-6">Our Journey</h2>
@@ -146,7 +146,7 @@ const About = () => {
                         ))}
                     </div>
                 </div>
-            </div>
+            </div> */}
 
             {/* Technology Approach */}
             <div className="container mx-auto px-6 py-20">

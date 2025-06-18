@@ -13,31 +13,23 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
 
   const handleSendMessage = () => {
     const message = inputText.trim();
-    if (!message) return;
+    if (!message || isTyping) return;
 
     setIsTyping(true);
-
-    // Send the message to parent
-    if (onSend && typeof onSend === 'function') {
-      onSend(message);
-    }
-
+    onSend(message);
     setInputText('');
 
-    // Optional: simulate delay if needed
-    setTimeout(() => {
-      setIsTyping(false);
-    }, 300); // shorter typing flag reset
+    setTimeout(() => setIsTyping(false), 300);
   };
 
   return (
-    <div className="bg-background text-foreground backdrop-blur-md border-t border-gray-200 dark:border-gray-700 p-4 transition-colors duration-300">
+    <div className="sticky bottom-0 z-30 bg-background/90 backdrop-blur-md border-t border-border p-4">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleSendMessage();
         }}
-        className="flex items-center space-x-4"
+        className="flex items-center gap-4"
       >
         <input
           type="text"
@@ -46,11 +38,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
           placeholder="Type your concern..."
           className="flex-1 px-5 py-3 rounded-2xl border border-gray-300 bg-transparent text-[rgb(var(--foreground))] placeholder-gray-500 dark:placeholder-gray-400 text-base focus:outline-none transition-all duration-300"
           disabled={isTyping}
+          aria-label="Chat input"
         />
         <button
           type="submit"
           disabled={!inputText.trim() || isTyping}
           className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-3 rounded-2xl hover:from-blue-700 hover:to-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Send message"
         >
           <Send className="w-5 h-5" />
         </button>

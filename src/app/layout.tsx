@@ -6,9 +6,11 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HideOnRoutes from "@/middleware/ConditionalChatInput";
-import { ReactNode } from "react";
 import ChatInputForHomepage from "@/components/ChatInputForHomepage";
 import GoToTop from "@/components/GoToTop";
+import CookieConsent from "@/components/CookieComponent";
+import { CookieProvider } from "@/context/CookieContext";
+import { ReactNode } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +28,7 @@ export const metadata: Metadata = {
   title: "Medico HealthBot 🩺",
   description: "An AI chatbot giving health suggestions in Hinglish & other languages.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/logo.png",
   },
 };
 
@@ -40,19 +42,24 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground transition-colors duration-200`}
       >
-        <HideOnRoutes hideOn={["/chat"]}>
-          <Header />
-        </HideOnRoutes>
-        <main className="flex-grow">{children}</main>
-        <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
-          <ChatInputForHomepage />
-        </HideOnRoutes>
-        <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
-          <GoToTop />
-        </HideOnRoutes>
-        <HideOnRoutes hideOn={["/chat"]}>
-          <Footer />
-        </HideOnRoutes>
+        <CookieProvider>
+          <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
+            <Header />
+          </HideOnRoutes>
+
+          <main className="flex-grow">{children}</main>
+
+          <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
+            <ChatInputForHomepage />
+            <GoToTop />
+          </HideOnRoutes>
+
+          <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
+            <Footer />
+          </HideOnRoutes>
+
+          <CookieConsent />
+        </CookieProvider>
       </body>
     </html>
   );
