@@ -93,7 +93,7 @@ const ChatPage: React.FC = () => {
     };
 
     return (
-        <div className="max-h-screen bg-background text-foreground flex">
+        <div className="max-h-screen min-h-[100vh] bg-background text-foreground flex">
             {/* Sidebar */}
             <ChatSidebar
                 isSidebarOpen={isSidebarOpen}
