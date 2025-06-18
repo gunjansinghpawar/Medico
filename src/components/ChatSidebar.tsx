@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Plus,
   MessageSquare,
@@ -40,8 +40,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   isSidebarCollapsed,
   setIsSidebarCollapsed,
 }) => {
-  const sidebarWidth = isSidebarCollapsed ? 'w-[80px]' : 'w-80';
-  const collapseTransition = 'transition-all duration-500 ease-in-out';
+  const sidebarWidth = useMemo(() => (isSidebarCollapsed ? 80 : 320), [isSidebarCollapsed]);
 
   return (
     <>
@@ -55,15 +54,15 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div
         className={`
           fixed inset-y-0 left-0 z-50
-          ${sidebarWidth}
           border-r border-border
           shadow-xl backdrop-blur-md
           transition-transform duration-300 ease-in-out
           lg:translate-x-0 lg:static lg:inset-0
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          ${collapseTransition}
         `}
         style={{
+          width: sidebarWidth,
+          transition: 'width 0.5s ease-in-out',
           background: 'rgb(var(--background) / 0.95)',
           color: 'rgb(var(--foreground))',
         }}
