@@ -206,7 +206,7 @@ const PrivacyPolicy: React.FC = () => {
 
             {/* Children */}
             <section className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">9. Children's Privacy</h2>
+              <h2 className="text-2xl font-bold mb-4">9. Children&quot;s Privacy</h2>
               <div className="bg-yellow-50 dark:bg-yellow-900 border-l-4 border-yellow-400 p-6 rounded-lg">
                 <p>
                   Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately.
@@ -218,7 +218,7 @@ const PrivacyPolicy: React.FC = () => {
             <section className="mb-8">
               <h2 className="text-2xl font-bold mb-4">10. Changes to This Policy</h2>
               <p>
-                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date. We encourage you to review this Privacy Policy periodically.
+                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &ldquo;Last updated&rdquo; date. We encourage you to review this Privacy Policy periodically.
               </p>
             </section>
 

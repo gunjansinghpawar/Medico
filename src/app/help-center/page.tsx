@@ -176,7 +176,7 @@ const HelpCenter: React.FC = () => {
               <h3 className="text-lg font-semibold text-red-800 dark:text-red-300">Medical Emergency</h3>
             </div>
             <p className="text-red-700 dark:text-red-200">
-              If you're experiencing a medical emergency, call 911 immediately. Do not use our health bot for emergency situations.
+              If you&apos;re experiencing a medical emergency, call 911 immediately. Do not use our health bot for emergency situations.
             </p>
           </div>
 

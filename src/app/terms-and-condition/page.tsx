@@ -35,7 +35,7 @@ const TermsAndConditions: React.FC = () => {
             {/* Sections */}
             <Section title="1. Acceptance of Terms">
               <p>
-                By accessing and using Medico Health Bot ("the Service"), you accept and agree to be bound by the terms and provisions of this agreement.
+                By accessing and using Medico Health Bot (&quot;the Service&quot;), you accept and agree to be bound by the terms and provisions of this agreement.
               </p>
               <p>
                 These Terms and Conditions constitute a legally binding agreement between you and Medico Health Bot.
