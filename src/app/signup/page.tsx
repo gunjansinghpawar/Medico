@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, User, Heart, ArrowRight, CheckCircle } from 'lucide-react';
 import AuthFooter from '@/components/AuthFooter';
 import AuthHeader from '@/components/AuthHeader';
+import { useRouter } from 'next/navigation';
 
 const Signup = () => {
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -18,10 +20,47 @@ const Signup = () => {
         subscribeNewsletter: true
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         console.log('Signup attempt:', formData);
+
+        try {
+            const response = await fetch('/api/auth/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    firstname: formData.firstName,
+                    lastname: formData.lastName,
+                    email: formData.email,
+                    password: formData.password
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Signup failed');
+            }
+
+            router.push('/');
+            const data = await response.json();
+            console.log('Signup successful:', data);
+            setFormData({
+                firstName: '',
+                lastName: '',
+                email: '',
+                password: '',
+                confirmPassword: '',
+                agreeToTerms: false,
+                subscribeNewsletter: true
+            });
+
+        } catch (error) {
+            console.error('Signup error:', error);
+        }
     };
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -217,7 +256,7 @@ const Signup = () => {
                                             />
                                             <span className="text-sm text-foreground">
                                                 I agree to the{' '}
-                                                <Link href="/terms" className="text-blue-600 hover:text-blue-700 transition-colors duration-300">
+                                                <Link href="/terms-and-condition" className="text-blue-600 hover:text-blue-700 transition-colors duration-300">
                                                     Terms of Service
                                                 </Link>{' '}
                                                 and{' '}

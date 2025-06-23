@@ -7,6 +7,11 @@ import {
     LogIn,
     // ArrowLeft
 } from 'lucide-react';
+import ThemeToggleSwitch from './ThemeToggleSwitch';
+import { useAuth } from '@/context/auth-context';
+import Link from 'next/link';
+import { User } from "lucide-react"; // you can replace it with an avatar/image
+
 
 interface ChatHeaderProps {
     setIsSidebarOpen: (open: boolean) => void;
@@ -19,6 +24,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     //   onBack,
     //   showBackButton,
 }) => {
+    const { user, isLoggedIn } = useAuth();
     return (
         <header
             role="banner"
@@ -52,7 +58,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           )} */}
 
                     {/* Branding */}
-                    <div className="flex items-center space-x-3 group">
+                    {/* Branding - Hidden on mobile */}
+                    <div className="hidden sm:flex items-center space-x-3 group">
                         <div className="bg-gradient-to-r from-blue-600 to-green-600 p-2 rounded-xl shadow-md">
                             <Bot className="h-6 w-6 text-white" />
                         </div>
@@ -65,25 +72,35 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                             </p>
                         </div>
                     </div>
-                </div>
 
+                </div>
                 {/* Right: Status & Login */}
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
-                        <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full animate-pulse" />
-                        <span className="text-sm font-medium">Online</span>
+                        <ThemeToggleSwitch />
                     </div>
-
-                    <a
-                        href="/login"
-                        className="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-blue-600 to-green-600 text-white hover:opacity-90 transition shadow-sm flex items-center space-x-2"
-                    >
-                        <LogIn className="w-4 h-4" />
-                        <span className="hidden sm:inline">Login</span>
-                    </a>
+                    {isLoggedIn ? (
+                        <Link
+                            href={`/profile`}
+                            className="flex items-center gap-2 px-4 py-2  border-2 rounded-full text-sm font-semibold text-foreground hover:text-white hover:bg-black transition"
+                        >
+                            <User className="w-5 h-5" />
+                            <span className="hidden sm:inline">{user?.firstname}</span>
+                        </Link>
+                    ) : (
+                        <>
+                            <a
+                                href="/login"
+                                className="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-blue-600 to-green-600 text-white hover:opacity-90 transition shadow-sm flex items-center space-x-2"
+                            >
+                                <LogIn className="w-4 h-4" />
+                                <span className="hidden sm:inline">Login</span>
+                            </a>
+                        </>
+                    )}
                 </div>
             </div>
-        </header>
+        </header >
     );
 };
 

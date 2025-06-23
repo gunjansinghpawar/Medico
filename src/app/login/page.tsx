@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, Heart, ArrowRight } from 'lucide-react';
 import AuthHeader from '@/components/AuthHeader';
 import AuthFooter from '@/components/AuthFooter';
+import { useRouter } from 'next/navigation';
 
 const Login = () => {
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
@@ -14,11 +16,35 @@ const Login = () => {
         rememberMe: false,
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         console.log('Login attempt:', formData);
-        // Add login logic here
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Login failed');
+            }
+
+            const data = await response.json();
+            console.log('Login successful:', data);
+            router.back();
+        } catch (error) {
+            console.error('Login error:', error);
+        }
     };
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;

@@ -11,7 +11,8 @@ import GoToTop from "@/components/GoToTop";
 import CookieConsent from "@/components/CookieComponent";
 import { CookieProvider } from "@/context/CookieContext";
 import { ReactNode } from "react";
-
+import PageLoader from "@/components/PageLoader";
+import { AuthProvider } from "@/context/auth-context";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -43,22 +44,26 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground transition-colors duration-200`}
       >
         <CookieProvider>
-          <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
-            <Header />
-          </HideOnRoutes>
+          <AuthProvider>
+            <PageLoader /> {/* 👈 Add this */}
 
-          <main className="flex-grow">{children}</main>
+            <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
+              <Header />
+            </HideOnRoutes>
 
-          <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
-            <ChatInputForHomepage />
-            <GoToTop />
-          </HideOnRoutes>
+            <main className="flex-grow">{children}</main>
 
-          <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
-            <Footer />
-          </HideOnRoutes>
+            <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
+              <ChatInputForHomepage />
+              <GoToTop />
+            </HideOnRoutes>
 
-          <CookieConsent />
+            <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
+              <Footer />
+            </HideOnRoutes>
+
+            <CookieConsent />
+          </AuthProvider>
         </CookieProvider>
       </body>
     </html>

@@ -45,9 +45,9 @@ const ChatMessagesContainer: React.FC<ChatMessagesContainerProps> = ({
 
                     <div className="flex flex-col items-start space-y-1">
                         <div
-                            className={`rounded-2xl p-4 shadow-md border w-fit max-w-[100%] whitespace-pre-wrap text-sm leading-relaxed ${message.sender === 'bot'
-                                    ? 'bg-white/90 dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 border-gray-200 dark:border-gray-700 rounded-tl-md'
-                                    : 'bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-tr-md ml-auto'
+                            className={`rounded-2xl p-4 shadow-md border w-fit max-w-5xl whitespace-pre-wrap text-sm leading-relaxed ${message.sender === 'bot'
+                                ? 'bg-white/90 dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 border-gray-200 dark:border-gray-700 rounded-tl-md'
+                                : 'bg-white/90 dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 border-gray-200 dark:border-gray-700 rounded-tl-md ml-auto'
                                 }`}
                         >
                             {message.text}
@@ -75,8 +75,8 @@ const ChatMessagesContainer: React.FC<ChatMessagesContainerProps> = ({
                     </div>
 
                     {message.sender === 'user' && (
-                        <div className="bg-gray-300 dark:bg-gray-700 p-2 rounded-full">
-                            <User className="w-5 h-5 text-gray-600 dark:text-white" />
+                        <div className="bg-gradient-to-r from-blue-600 to-green-600 p-2 rounded-full">
+                            <User className="w-5 h-5 text-white" />
                         </div>
                     )}
                 </div>

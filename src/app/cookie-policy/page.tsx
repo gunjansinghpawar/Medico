@@ -82,13 +82,13 @@ const CookiePolicy: React.FC = () => {
 
                     {/* Third-Party Cookies */}
                     <Section title="Third-Party Cookies">
-                        <div className="p-6 rounded-lg border-l-4 border-yellow-500 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-100">
+                        <div className="p-6 rounded-lg border-l-4 bg-[rgb(var(--muted))]">
                             <p className="mb-4">We may use HIPAA-compliant third-party services:</p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {thirdPartyServices.map(({ title, desc }, i) => (
-                                    <div key={i} className="bg-white dark:bg-[rgb(var(--background))] p-4 rounded border border-[rgb(var(--border))]">
-                                        <h4 className="font-semibold mb-2">{title}</h4>
-                                        <p className="text-sm opacity-80">{desc}</p>
+                                    <div key={i} className="bg-white dark:bg-[rgb(var(--background))] text-foreground p-4 rounded border border-[rgb(var(--border))]">
+                                        <h4 className="font-semibold mb-2 text-foreground ">{title}</h4>
+                                        <p className="text-sm opacity-80 text-foreground ">{desc}</p>
                                     </div>
                                 ))}
                             </div>
