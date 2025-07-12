@@ -23,6 +23,10 @@ const Header = () => {
       href: "/",
     },
     {
+      label: "Chatbot",
+      href: "/chat"
+    },
+    {
       label: "About",
       href: "/about",
     },

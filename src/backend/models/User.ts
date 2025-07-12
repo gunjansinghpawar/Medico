@@ -22,6 +22,39 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    phone: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    dateOfBirth: {
+        type: Date,
+    },
+    lastActive: {
+        type: Date,
+    },
+    avatar: {
+        type: String,
+        trim: true
+    },
+    consultations: {
+        type: [mongoose.Schema.Types.Mixed],
+        default: []
+    },
+    preferences: {
+        notification: {
+            type: Boolean,
+            default: true
+        },
+        dataSharing: {
+            type: Boolean,
+            default: false
+        },
+        reminder: {
+            type: Boolean,
+            default: true
+        }
+    }
 }, {
     timestamps: true,
 });

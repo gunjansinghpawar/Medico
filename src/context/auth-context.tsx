@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const res = await axios.get("/api/auth/me");
         setUser(res.data.user);
-        console.log(res.data)
       } catch {
         setUser(null);
       } finally {

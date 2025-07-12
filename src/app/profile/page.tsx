@@ -5,7 +5,8 @@ import Image from 'next/image';
 
 interface UserProfile {
     id: string;
-    name: string;
+    firstname: string;
+    lastname: string;
     email: string;
     phone: string;
     dateOfBirth: string;
@@ -24,9 +25,12 @@ interface UserProfile {
 
 const Profile: React.FC = () => {
     const [editing, setEditing] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [fetchingData, setFetchingData] = useState(true);
     const [profile, setProfile] = useState<UserProfile>({
         id: '',
-        name: '',
+        firstname: '',
+        lastname: '',
         email: '',
         phone: '',
         dateOfBirth: '',
@@ -44,14 +48,119 @@ const Profile: React.FC = () => {
     });
     const [editedProfile, setEditedProfile] = useState<UserProfile>(profile);
 
+    // Fetch user data on component mount
+    React.useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                setFetchingData(true);
+                const response = await fetch('/api/auth/me', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (response.ok) {
+                    const userDetails = await response.json();
+                    const userData = userDetails.user;
+                    // Map the API response to our profile structure
+                    const mappedProfile: UserProfile = {
+                        id: userData.id || '',
+                        firstname: userData.firstname || userData.name?.split(' ')[0] || '',
+                        lastname: userData.lastname || userData.name?.split(' ').slice(1).join(' ') || '',
+                        email: userData.email || '',
+                        phone: userData.phone || '',
+                        dateOfBirth: userData.dateOfBirth || '',
+                        location: userData.location || '',
+                        avatar: userData.avatar || userData.profilePicture || '',
+                        joinDate: userData.joinDate || userData.createdAt || '',
+                        lastActive: userData.lastActive || userData.updatedAt || new Date().toISOString(),
+                        healthScore: userData.healthScore || 0,
+                        consultations: userData.consultations || 0,
+                        preferences: {
+                            notifications: userData.preferences?.notifications ?? false,
+                            dataSharing: userData.preferences?.dataSharing ?? false,
+                            reminders: userData.preferences?.reminders ?? false,
+                        },
+                    };
+
+                    setProfile(mappedProfile);
+                    setEditedProfile(mappedProfile);
+                } else if (response.status === 401) {
+                    // Handle unauthorized access - redirect to login
+                    console.error('User not authenticated');
+                    // You might want to redirect to login page here
+                    // router.push('/login');
+                } else {
+                    throw new Error('Failed to fetch user data');
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                // Handle error (show toast, etc.)
+            } finally {
+                setFetchingData(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
     const handleEdit = () => {
         setEditedProfile(profile);
         setEditing(true);
     };
 
-    const handleSave = () => {
-        setProfile(editedProfile);
-        setEditing(false);
+    const handleSave = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('/api/auth/updateDetails', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    firstname: editedProfile.firstname,
+                    lastname: editedProfile.lastname,
+                    name: `${editedProfile.firstname} ${editedProfile.lastname}`.trim(),
+                    email: editedProfile.email,
+                    phone: editedProfile.phone,
+                    dateOfBirth: editedProfile.dateOfBirth,
+                    location: editedProfile.location,
+                    preferences: editedProfile.preferences,
+                }),
+            });
+
+            if (response.ok) {
+                const updatedProfile = await response.json();
+
+                // Update the profile with the response data
+                const mappedProfile: UserProfile = {
+                    ...editedProfile,
+                    id: updatedProfile.id || editedProfile.id,
+                    firstname: updatedProfile.firstname || editedProfile.firstname,
+                    lastname: updatedProfile.lastname || editedProfile.lastname,
+                    email: updatedProfile.email || editedProfile.email,
+                    phone: updatedProfile.phone || editedProfile.phone,
+                    dateOfBirth: updatedProfile.dateOfBirth || editedProfile.dateOfBirth,
+                    location: updatedProfile.location || editedProfile.location,
+                    avatar: updatedProfile.avatar || editedProfile.avatar,
+                    preferences: updatedProfile.preferences || editedProfile.preferences,
+                };
+
+                setProfile(mappedProfile);
+                setEditing(false);
+            } else {
+                throw new Error('Failed to update profile');
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            // Handle error (show toast notification, etc.)
+            alert('Failed to update profile. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleCancel = () => {
@@ -76,327 +185,442 @@ const Profile: React.FC = () => {
         }));
     };
 
+    const getInitials = (firstname: string, lastname: string) => {
+        return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
+    };
+
+    const displayProfile = editing ? editedProfile : profile;
+    const fullName = `${displayProfile.firstname} ${displayProfile.lastname}`.trim();
+
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-                    <div className="bg-gradient-to-r from-blue-600 to-green-600 h-32 relative">
-                        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-                        <div className="absolute bottom-4 right-4">
-                            {!editing ? (
-                                <button
-                                    onClick={handleEdit}
-                                    className="bg-white text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center space-x-2 shadow-md"
+        <div className="min-h-screen py-4 sm:py-8 px-4 sm:px-6 lg:px-8 mt-20 fade-in" style={{ backgroundColor: 'rgb(var(--background))' }}>
+            <div className="max-w-7xl mx-auto">
+                {/* Loading State */}
+                {fetchingData ? (
+                    <div className="flex items-center justify-center min-h-screen">
+                        <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{ borderColor: 'rgb(var(--primary))' }}></div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Header */}
+                        <div className="rounded-xl shadow-lg overflow-hidden mb-6 sm:mb-8" style={{ backgroundColor: 'rgb(var(--background))' }}>
+                            <div className="h-32 sm:h-40 relative" style={{ background: 'linear-gradient(to right, rgb(var(--primary)), rgb(var(--accent)))' }}>
+                                <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+                                    {!editing ? (
+                                        <button
+                                            onClick={handleEdit}
+                                            className="px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md text-sm hover:opacity-90"
+                                            style={{
+                                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                                color: 'white'
+                                            }}
+                                        >
+                                            <Edit3 className="h-4 w-4" />
+                                            <span>Edit Profile</span>
+                                        </button>
+                                    ) : (
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={handleSave}
+                                                disabled={loading}
+                                                className="px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-colors flex items-center space-x-2 shadow-md disabled:opacity-50 text-sm"
+                                                style={{
+                                                    backgroundColor: 'rgb(var(--primary))',
+                                                    color: 'rgb(var(--primary-foreground))'
+                                                }}
+                                            >
+                                                <Save className="h-4 w-4" />
+                                                <span>{loading ? 'Saving...' : 'Save'}</span>
+                                            </button>
+                                            <button
+                                                onClick={handleCancel}
+                                                disabled={loading}
+                                                className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center space-x-2 shadow-md disabled:opacity-50 text-sm"
+                                            >
+                                                <X className="h-4 w-4" />
+                                                <span>Cancel</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="px-6 sm:px-8 pb-6 sm:pb-8 text-white" style={{ backgroundColor: 'rgb(30, 41, 59)' }}>
+                                <div className="flex flex-col sm:flex-row items-center sm:items-end space-y-4 sm:space-y-0 sm:space-x-6 -mt-16 sm:-mt-20">
+                                    <div className="relative flex-shrink-0">
+                                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'rgb(71, 85, 105)' }}>
+                                            {profile.avatar ? (
+                                                <Image
+                                                    src={profile?.avatar}
+                                                    alt="Profile"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="text-white text-2xl sm:text-4xl font-bold">
+                                                    {getInitials(displayProfile.firstname || 'U', displayProfile.lastname || 'U')}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {editing && (
+                                            <button
+                                                className="absolute bottom-2 right-2 p-2 text-white rounded-full hover:opacity-90 transition-colors shadow-md"
+                                                style={{ backgroundColor: 'rgb(var(--primary))' }}
+                                            >
+                                                <Camera className="h-4 w-4" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="text-center sm:text-left flex-1 min-w-0">
+                                        <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">
+                                            {fullName || 'User Name'}
+                                        </h1>
+                                        <p className="text-sm sm:text-base mb-2" style={{ color: 'rgb(134, 239, 172)' }}>
+                                            Member since {profile.joinDate ? new Date(profile.joinDate).toLocaleDateString() : 'N/A'}
+                                        </p>
+                                        <div className="flex items-center justify-center sm:justify-start space-x-4 text-sm">
+                                            <div className="flex items-center space-x-2" style={{ color: 'rgb(134, 239, 172)' }}>
+                                                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'rgb(74, 222, 128)' }}></div>
+                                                <span className="font-medium">Active</span>
+                                            </div>
+                                            <div className="text-slate-300">•</div>
+                                            <div className="text-slate-300">
+                                                Last seen {profile.lastActive ? new Date(profile.lastActive).toLocaleDateString() : 'N/A'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+                            {/* Personal Information */}
+                            <div className="xl:col-span-2 space-y-6 sm:space-y-8">
+                                <div className="rounded-xl shadow-lg p-6 sm:p-8" style={{ backgroundColor: 'rgb(var(--background))' }}>
+                                    <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center" style={{ color: 'rgb(var(--foreground))' }}>
+                                        <User className="h-6 w-6 mr-3" style={{ color: 'rgb(var(--primary))' }} />
+                                        Personal Information
+                                    </h2>
+
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>First Name</label>
+                                            {editing ? (
+                                                <input
+                                                    type="text"
+                                                    value={editedProfile.firstname}
+                                                    onChange={(e) => handleInputChange('firstname', e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-offset-0 transition-all"
+                                                    style={{
+                                                        backgroundColor: 'rgb(var(--background))',
+                                                        color: 'rgb(var(--foreground))',
+                                                        border: '1px solid rgb(var(--border))'
+                                                    }}
+                                                    placeholder="Enter first name"
+                                                />
+                                            ) : (
+                                                <div className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: 'rgb(var(--muted))' }}>
+                                                    <User className="h-5 w-5" style={{ color: 'rgb(var(--muted-foreground))' }} />
+                                                    <span style={{ color: 'rgb(var(--foreground))' }}>
+                                                        {profile.firstname || 'Add first name'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>Last Name</label>
+                                            {editing ? (
+                                                <input
+                                                    type="text"
+                                                    value={editedProfile.lastname}
+                                                    onChange={(e) => handleInputChange('lastname', e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-offset-0 transition-all"
+                                                    style={{
+                                                        backgroundColor: 'rgb(var(--background))',
+                                                        color: 'rgb(var(--foreground))',
+                                                        border: '1px solid rgb(var(--border))'
+                                                    }}
+                                                    placeholder="Enter last name"
+                                                />
+                                            ) : (
+                                                <div className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: 'rgb(var(--muted))' }}>
+                                                    <User className="h-5 w-5" style={{ color: 'rgb(var(--muted-foreground))' }} />
+                                                    <span style={{ color: 'rgb(var(--foreground))' }}>
+                                                        {profile.lastname || 'Add last name'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>Email Address</label>
+                                            {editing ? (
+                                                <input
+                                                    type="email"
+                                                    value={editedProfile.email}
+                                                    onChange={(e) => handleInputChange('email', e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-offset-0 transition-all"
+                                                    style={{
+                                                        backgroundColor: 'rgb(var(--background))',
+                                                        color: 'rgb(var(--foreground))',
+                                                        border: '1px solid rgb(var(--border))'
+                                                    }}
+                                                    placeholder="Enter email address"
+                                                />
+                                            ) : (
+                                                <div className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: 'rgb(var(--muted))' }}>
+                                                    <Mail className="h-5 w-5" style={{ color: 'rgb(var(--muted-foreground))' }} />
+                                                    <span className="truncate" style={{ color: 'rgb(var(--foreground))' }}>
+                                                        {profile.email || 'Add email address'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>Phone Number</label>
+                                            {editing ? (
+                                                <input
+                                                    type="tel"
+                                                    value={editedProfile.phone}
+                                                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-offset-0 transition-all"
+                                                    style={{
+                                                        backgroundColor: 'rgb(var(--background))',
+                                                        color: 'rgb(var(--foreground))',
+                                                        border: '1px solid rgb(var(--border))'
+                                                    }}
+                                                    placeholder="Enter phone number"
+                                                />
+                                            ) : (
+                                                <div className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: 'rgb(var(--muted))' }}>
+                                                    <Phone className="h-5 w-5" style={{ color: 'rgb(var(--muted-foreground))' }} />
+                                                    <span style={{ color: 'rgb(var(--foreground))' }}>
+                                                        {profile.phone || 'Add phone number'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>Date of Birth</label>
+                                            {editing ? (
+                                                <input
+                                                    type="date"
+                                                    value={editedProfile.dateOfBirth}
+                                                    onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-offset-0 transition-all"
+                                                    style={{
+                                                        backgroundColor: 'rgb(var(--background))',
+                                                        color: 'rgb(var(--foreground))',
+                                                        border: '1px solid rgb(var(--border))'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: 'rgb(var(--muted))' }}>
+                                                    <Calendar className="h-5 w-5" style={{ color: 'rgb(var(--muted-foreground))' }} />
+                                                    <span style={{ color: 'rgb(var(--foreground))' }}>
+                                                        {profile.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : 'Add date of birth'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>Location</label>
+                                            {editing ? (
+                                                <input
+                                                    type="text"
+                                                    value={editedProfile.location}
+                                                    onChange={(e) => handleInputChange('location', e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-offset-0 transition-all"
+                                                    style={{
+                                                        backgroundColor: 'rgb(var(--background))',
+                                                        color: 'rgb(var(--foreground))',
+                                                        border: '1px solid rgb(var(--border))'
+                                                    }}
+                                                    placeholder="Enter location"
+                                                />
+                                            ) : (
+                                                <div className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: 'rgb(var(--muted))' }}>
+                                                    <MapPin className="h-5 w-5" style={{ color: 'rgb(var(--muted-foreground))' }} />
+                                                    <span style={{ color: 'rgb(var(--foreground))' }}>
+                                                        {profile.location || 'Add location'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Privacy Preferences */}
+                                <div className="rounded-xl shadow-lg p-6 sm:p-8" style={{ backgroundColor: 'rgb(var(--background))' }}>
+                                    <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center" style={{ color: 'rgb(var(--foreground))' }}>
+                                        <Shield className="h-6 w-6 mr-3" style={{ color: 'rgb(var(--primary))' }} />
+                                        Privacy Preferences
+                                    </h2>
+
+                                    <div className="space-y-6">
+                                        {[
+                                            { key: 'notifications', title: 'Email Notifications', desc: 'Receive health tips and updates via email' },
+                                            { key: 'dataSharing', title: 'Data Sharing', desc: 'Share anonymized data for medical research' },
+                                            { key: 'reminders', title: 'Health Reminders', desc: 'Get reminders for health checkups and medications' }
+                                        ].map((pref) => (
+                                            <div key={pref.key} className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'rgb(var(--muted))' }}>
+                                                <div className="flex-1 min-w-0 mr-4">
+                                                    <h3 className="font-semibold" style={{ color: 'rgb(var(--foreground))' }}>
+                                                        {pref.title}
+                                                    </h3>
+                                                    <p className="text-sm mt-1" style={{ color: 'rgb(var(--muted-foreground))' }}>
+                                                        {pref.desc}
+                                                    </p>
+                                                </div>
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={editing ? editedProfile.preferences[pref.key as keyof UserProfile['preferences']] : profile.preferences[pref.key as keyof UserProfile['preferences']]}
+                                                        onChange={() => editing && handlePreferenceChange(pref.key as keyof UserProfile['preferences'])}
+                                                        disabled={!editing}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div
+                                                        className="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"
+                                                        style={{
+                                                            backgroundColor: (editing && editedProfile.preferences[pref.key as keyof UserProfile['preferences']]) || (!editing && profile.preferences[pref.key as keyof UserProfile['preferences']]) ? 'rgb(var(--primary))' : 'rgb(var(--muted))'
+                                                        }}
+                                                    ></div>
+                                                </label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Health Stats Sidebar */}
+                            <div className="space-y-6 sm:space-y-8">
+                                <div className="rounded-xl shadow-lg p-6" style={{ backgroundColor: 'rgb(var(--background))' }}>
+                                    <h3 className="text-lg font-bold mb-4 flex items-center" style={{ color: 'rgb(var(--foreground))' }}>
+                                        <Activity className="h-5 w-5 mr-2" style={{ color: 'rgb(var(--primary))' }} />
+                                        Health Overview
+                                    </h3>
+
+                                    <div className="space-y-4">
+                                        <div className="text-center">
+                                            <div className="relative w-24 h-24 mx-auto mb-3">
+                                                <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                                                    <path
+                                                        stroke="rgb(var(--muted))"
+                                                        strokeWidth="3"
+                                                        fill="none"
+                                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                    />
+                                                    <path
+                                                        stroke="rgb(var(--primary))"
+                                                        strokeWidth="3"
+                                                        strokeDasharray={`${profile.healthScore}, 100`}
+                                                        strokeLinecap="round"
+                                                        fill="none"
+                                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                    />
+                                                </svg>
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="text-2xl font-bold" style={{ color: 'rgb(var(--foreground))' }}>
+                                                        {profile.healthScore}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm" style={{ color: 'rgb(var(--muted-foreground))' }}>Health Score</p>
+                                        </div>
+
+                                        <div className="border-t pt-4" style={{ borderColor: 'rgb(var(--border))' }}>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-sm" style={{ color: 'rgb(var(--muted-foreground))' }}>Total Consultations</span>
+                                                <span className="font-semibold" style={{ color: 'rgb(var(--foreground))' }}>
+                                                    {profile.consultations}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm" style={{ color: 'rgb(var(--muted-foreground))' }}>This Month</span>
+                                                <span className="font-semibold" style={{ color: 'rgb(var(--primary))' }}>3</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="rounded-xl shadow-lg p-6" style={{ backgroundColor: 'rgb(var(--background))' }}>
+                                    <h3 className="text-lg font-bold mb-4 flex items-center" style={{ color: 'rgb(var(--foreground))' }}>
+                                        <Heart className="h-5 w-5 mr-2 text-red-500" />
+                                        Recent Activity
+                                    </h3>
+
+                                    <div className="space-y-3">
+                                        {[
+                                            { text: 'Health consultation', time: '2 hours ago', color: 'rgb(var(--primary))' },
+                                            { text: 'Profile updated', time: '1 day ago', color: 'rgb(var(--accent))' },
+                                            { text: 'Health reminder set', time: '3 days ago', color: 'rgb(234, 179, 8)' }
+                                        ].map((activity, index) => (
+                                            <div key={index} className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: 'rgb(var(--muted))' }}>
+                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: activity.color }}></div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium truncate" style={{ color: 'rgb(var(--foreground))' }}>
+                                                        {activity.text}
+                                                    </p>
+                                                    <p className="text-xs" style={{ color: 'rgb(var(--muted-foreground))' }}>{activity.time}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div
+                                    className="rounded-xl shadow-lg p-6"
+                                    style={{ backgroundColor: 'rgb(var(--background))' }}
                                 >
-                                    <Edit3 className="h-4 w-4" />
-                                    <span>Edit Profile</span>
-                                </button>
-                            ) : (
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={handleSave}
-                                        className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center space-x-2 shadow-md"
+                                    <h3
+                                        className="text-lg font-bold mb-4 flex items-center"
+                                        style={{ color: 'rgb(var(--foreground))' }}
                                     >
-                                        <Save className="h-4 w-4" />
-                                        <span>Save</span>
-                                    </button>
-                                    <button
-                                        onClick={handleCancel}
-                                        className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center space-x-2 shadow-md"
-                                    >
-                                        <X className="h-4 w-4" />
-                                        <span>Cancel</span>
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                                        <Clock className="h-5 w-5 mr-2" style={{ color: 'rgb(var(--primary))' }} />
+                                        Quick Actions
+                                    </h3>
 
-                    <div className="px-8 pb-8">
-                        <div className="flex flex-col sm:flex-row items-center sm:items-end space-y-4 sm:space-y-0 sm:space-x-6 -mt-16">
-                            <div className="relative">
-                                <Image
-                                    src={profile.avatar}
-                                    alt="Profile"
-                                    className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
-                                />
-                                {editing && (
-                                    <button className="absolute bottom-2 right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-md">
-                                        <Camera className="h-4 w-4" />
-                                    </button>
-                                )}
-                            </div>
+                                    <div className="space-y-3">
+                                        <button
+                                            className="w-full transition-colors rounded-lg p-3 text-left"
+                                            style={{
+                                                backgroundColor: 'rgb(var(--muted))',
+                                                color: 'rgb(var(--foreground))',
+                                                border: '1px solid rgb(var(--border))',
+                                            }}
+                                        >
+                                            <p className="font-medium">Schedule Consultation</p>
+                                            <p className="text-sm" style={{ color: 'rgb(var(--muted-foreground))' }}>
+                                                Book your next health check
+                                            </p>
+                                        </button>
 
-                            <div className="text-center sm:text-left flex-1">
-                                {editing ? (
-                                    <input
-                                        type="text"
-                                        value={editedProfile.name}
-                                        onChange={(e) => handleInputChange('name', e.target.value)}
-                                        className="text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-600 focus:outline-none focus:border-green-600 transition-colors"
-                                    />
-                                ) : (
-                                    <h1 className="text-3xl font-bold text-gray-900">{profile.name}</h1>
-                                )}
-                                <p className="text-gray-600 mt-1">Member since {new Date(profile.joinDate).toLocaleDateString()}</p>
-                                <div className="flex items-center justify-center sm:justify-start space-x-4 mt-3">
-                                    <div className="flex items-center space-x-1 text-green-600">
-                                        <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
-                                        <span className="text-sm font-medium">Active</span>
-                                    </div>
-                                    <div className="text-gray-400">•</div>
-                                    <div className="text-sm text-gray-600">
-                                        Last seen {new Date(profile.lastActive).toLocaleDateString()}
+                                        <button
+                                            className="w-full transition-colors rounded-lg p-3 text-left"
+                                            style={{
+                                                backgroundColor: 'rgb(var(--muted))',
+                                                color: 'rgb(var(--foreground))',
+                                                border: '1px solid rgb(var(--border))',
+                                            }}
+                                        >
+                                            <p className="font-medium">Health Assessment</p>
+                                            <p className="text-sm" style={{ color: 'rgb(var(--muted-foreground))' }}>
+                                                Take a quick health quiz
+                                            </p>
+                                        </button>
                                     </div>
                                 </div>
+
+
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Personal Information */}
-                    <div className="lg:col-span-2">
-                        <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                                <User className="h-6 w-6 mr-3 text-blue-600" />
-                                Personal Information
-                            </h2>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                                    {editing ? (
-                                        <input
-                                            type="email"
-                                            value={editedProfile.email}
-                                            onChange={(e) => handleInputChange('email', e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
-                                    ) : (
-                                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                                            <Mail className="h-5 w-5 text-gray-400" />
-                                            <span className="text-gray-900">{profile.email}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                                    {editing ? (
-                                        <input
-                                            type="tel"
-                                            value={editedProfile.phone}
-                                            onChange={(e) => handleInputChange('phone', e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
-                                    ) : (
-                                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                                            <Phone className="h-5 w-5 text-gray-400" />
-                                            <span className="text-gray-900">{profile.phone}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                                    {editing ? (
-                                        <input
-                                            type="date"
-                                            value={editedProfile.dateOfBirth}
-                                            onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
-                                    ) : (
-                                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                                            <Calendar className="h-5 w-5 text-gray-400" />
-                                            <span className="text-gray-900">{new Date(profile.dateOfBirth).toLocaleDateString()}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                                    {editing ? (
-                                        <input
-                                            type="text"
-                                            value={editedProfile.location}
-                                            onChange={(e) => handleInputChange('location', e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
-                                    ) : (
-                                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                                            <MapPin className="h-5 w-5 text-gray-400" />
-                                            <span className="text-gray-900">{profile.location}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Privacy Preferences */}
-                        <div className="bg-white rounded-lg shadow-lg p-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                                <Shield className="h-6 w-6 mr-3 text-blue-600" />
-                                Privacy Preferences
-                            </h2>
-
-                            <div className="space-y-6">
-                                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">Email Notifications</h3>
-                                        <p className="text-sm text-gray-600">Receive health tips and updates via email</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={editing ? editedProfile.preferences.notifications : profile.preferences.notifications}
-                                            onChange={() => editing && handlePreferenceChange('notifications')}
-                                            disabled={!editing}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
-
-                                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">Data Sharing</h3>
-                                        <p className="text-sm text-gray-600">Share anonymized data for medical research</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={editing ? editedProfile.preferences.dataSharing : profile.preferences.dataSharing}
-                                            onChange={() => editing && handlePreferenceChange('dataSharing')}
-                                            disabled={!editing}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
-
-                                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">Health Reminders</h3>
-                                        <p className="text-sm text-gray-600">Get reminders for health checkups and medications</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={editing ? editedProfile.preferences.reminders : profile.preferences.reminders}
-                                            onChange={() => editing && handlePreferenceChange('reminders')}
-                                            disabled={!editing}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Health Stats */}
-                    <div className="space-y-8">
-                        <div className="bg-white rounded-lg shadow-lg p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                                <Activity className="h-5 w-5 mr-2 text-green-600" />
-                                Health Overview
-                            </h3>
-
-                            <div className="space-y-4">
-                                <div className="text-center">
-                                    <div className="relative w-24 h-24 mx-auto mb-3">
-                                        <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
-                                            <path
-                                                className="text-gray-200"
-                                                stroke="currentColor"
-                                                strokeWidth="3"
-                                                fill="none"
-                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                            />
-                                            <path
-                                                className="text-green-600"
-                                                stroke="currentColor"
-                                                strokeWidth="3"
-                                                strokeDasharray={`${profile.healthScore}, 100`}
-                                                strokeLinecap="round"
-                                                fill="none"
-                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                            />
-                                        </svg>
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <span className="text-2xl font-bold text-gray-900">{profile.healthScore}</span>
-                                        </div>
-                                    </div>
-                                    <p className="text-sm text-gray-600">Health Score</p>
-                                </div>
-
-                                <div className="border-t pt-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm text-gray-600">Consultations</span>
-                                        <span className="font-semibold text-gray-900">{profile.consultations}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-600">This Month</span>
-                                        <span className="font-semibold text-green-600">3</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-lg shadow-lg p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                                <Heart className="h-5 w-5 mr-2 text-red-500" />
-                                Recent Activity
-                            </h3>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium text-gray-900">Health consultation</p>
-                                        <p className="text-xs text-gray-600">2 hours ago</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                                    <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium text-gray-900">Profile updated</p>
-                                        <p className="text-xs text-gray-600">1 day ago</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
-                                    <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium text-gray-900">Health reminder set</p>
-                                        <p className="text-xs text-gray-600">3 days ago</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-lg shadow-lg p-6 text-white">
-                            <h3 className="text-lg font-bold mb-2 flex items-center">
-                                <Clock className="h-5 w-5 mr-2" />
-                                Quick Actions
-                            </h3>
-                            <div className="space-y-3">
-                                <button className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors rounded-lg p-3 text-left">
-                                    <p className="font-medium">Schedule Consultation</p>
-                                    <p className="text-sm opacity-90">Book your next health check</p>
-                                </button>
-                                <button className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors rounded-lg p-3 text-left">
-                                    <p className="font-medium">Health Assessment</p>
-                                    <p className="text-sm opacity-90">Take a quick health quiz</p>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    </>
+                )}
             </div>
         </div>
     );

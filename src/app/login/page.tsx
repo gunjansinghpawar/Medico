@@ -39,6 +39,7 @@ const Login = () => {
 
             const data = await response.json();
             console.log('Login successful:', data);
+            router.refresh();
             router.back();
         } catch (error) {
             console.error('Login error:', error);
