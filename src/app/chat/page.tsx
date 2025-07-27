@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useReducer, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 import ChatInput from '@/components/ChatInput';
@@ -20,46 +20,123 @@ import {
   deleteChatFromStorage,
 } from '@/utils/chatHelpers';
 
+type State = {
+  isSidebarOpen: boolean;
+  isSidebarCollapsed: boolean;
+  chatHistory: ChatHistoryItem[];
+  currentChatId: string | null;
+  messages: Message[];
+  isTyping: boolean;
+};
+
+type Action =
+  | { type: 'SET_SIDEBAR_OPEN'; payload: boolean }
+  | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
+  | { type: 'SET_CHAT_HISTORY'; payload: ChatHistoryItem[] }
+  | { type: 'SET_CURRENT_CHAT'; payload: string | null }
+  | { type: 'SET_MESSAGES'; payload: Message[] }
+  | { type: 'SET_TYPING'; payload: boolean }
+  | { type: 'ADD_CHAT'; payload: ChatHistoryItem }
+  | { type: 'UPDATE_CHAT_TITLE'; payload: { id: string; title: string } }
+  | { type: 'UPDATE_CHAT_LAST_MESSAGE'; payload: { id: string; lastMessage: string; timestamp: Date } }
+  | { type: 'DELETE_CHAT'; payload: string };
+
+const initialState: State = {
+  isSidebarOpen: false,
+  isSidebarCollapsed: false,
+  chatHistory: [],
+  currentChatId: null,
+  messages: [],
+  isTyping: false,
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'SET_SIDEBAR_OPEN':
+      return { ...state, isSidebarOpen: action.payload };
+    case 'SET_SIDEBAR_COLLAPSED':
+      return { ...state, isSidebarCollapsed: action.payload };
+    case 'SET_CHAT_HISTORY':
+      return { ...state, chatHistory: action.payload };
+    case 'SET_CURRENT_CHAT':
+      return { ...state, currentChatId: action.payload };
+    case 'SET_MESSAGES':
+      return { ...state, messages: action.payload };
+    case 'SET_TYPING':
+      return { ...state, isTyping: action.payload };
+    case 'ADD_CHAT':
+      return { ...state, chatHistory: [action.payload, ...state.chatHistory] };
+    case 'UPDATE_CHAT_TITLE':
+      return {
+        ...state,
+        chatHistory: state.chatHistory.map((chat) =>
+          chat.id === action.payload.id
+            ? { ...chat, title: action.payload.title }
+            : chat
+        ),
+      };
+    case 'UPDATE_CHAT_LAST_MESSAGE':
+      return {
+        ...state,
+        chatHistory: state.chatHistory.map((chat) =>
+          chat.id === action.payload.id
+            ? {
+                ...chat,
+                lastMessage: action.payload.lastMessage,
+                timestamp: action.payload.timestamp,
+              }
+            : chat
+        ),
+      };
+    case 'DELETE_CHAT':
+      return {
+        ...state,
+        chatHistory: state.chatHistory.filter((chat) => chat.id !== action.payload),
+      };
+    default:
+      return state;
+  }
+}
+
 const ChatPage: React.FC = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([]);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-
+  const [state, dispatch] = useReducer(reducer, initialState);
   const router = useRouter();
 
+  // Load chat history and current chat on mount
   useEffect(() => {
     const history = loadChatHistory();
-    setChatHistory(history);
+    dispatch({ type: 'SET_CHAT_HISTORY', payload: history });
 
     const savedId = loadCurrentChatId();
     if (savedId) {
-      setCurrentChatId(savedId);
+      dispatch({ type: 'SET_CURRENT_CHAT', payload: savedId });
       const msgs = loadMessages(savedId);
-      setMessages(msgs);
+      dispatch({ type: 'SET_MESSAGES', payload: msgs });
     }
   }, []);
 
+  // Persist chat history
   useEffect(() => {
-    saveChatHistory(chatHistory);
-  }, [chatHistory]);
+    saveChatHistory(state.chatHistory);
+  }, [state.chatHistory]);
 
+  // Persist current chat id
   useEffect(() => {
-    if (currentChatId) {
-      saveCurrentChatId(currentChatId);
+    if (state.currentChatId) {
+      saveCurrentChatId(state.currentChatId);
+    } else {
+      localStorage.removeItem('currentChatId');
     }
-  }, [currentChatId]);
+  }, [state.currentChatId]);
 
+  // Persist messages
   useEffect(() => {
-    if (currentChatId) {
-      saveMessages(currentChatId, messages);
+    if (state.currentChatId) {
+      saveMessages(state.currentChatId, state.messages);
     }
-  }, [messages, currentChatId]);
+  }, [state.messages, state.currentChatId]);
 
-  const createNewChat = () => {
+  const createNewChat = useCallback(() => {
     const newId = Date.now().toString();
     const newChat: ChatHistoryItem = {
       id: newId,
@@ -67,142 +144,141 @@ const ChatPage: React.FC = () => {
       lastMessage: '',
       timestamp: new Date(),
     };
-    setChatHistory([newChat, ...chatHistory]);
-    setMessages([]);
-    setCurrentChatId(newId);
+    dispatch({ type: 'ADD_CHAT', payload: newChat });
+    dispatch({ type: 'SET_MESSAGES', payload: [] });
+    dispatch({ type: 'SET_CURRENT_CHAT', payload: newId });
     saveMessages(newId, []);
-  };
+  }, []);
 
-  const loadChat = (id: string) => {
-    setCurrentChatId(id);
-    const msgs = loadMessages(id);
-    setMessages(msgs);
-  };
+  const loadChat = useCallback(
+    (id: string) => {
+      const msgs = loadMessages(id);
+      dispatch({ type: 'SET_CURRENT_CHAT', payload: id });
+      dispatch({ type: 'SET_MESSAGES', payload: msgs });
+    },
+    []
+  );
 
-  const deleteChat = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const deleteChat = useCallback(
+    (id: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      deleteChatFromStorage(id);
 
-    const updatedHistory = chatHistory.filter(chat => chat.id !== id);
-    setChatHistory(updatedHistory);
-    deleteChatFromStorage(id);
+      dispatch({ type: 'DELETE_CHAT', payload: id });
 
-    if (currentChatId === id) {
-      localStorage.removeItem('currentChatId');
-
-      if (updatedHistory.length > 0) {
-        const nextChat = updatedHistory[0];
-        setCurrentChatId(nextChat.id);
-        const msgs = loadMessages(nextChat.id);
-        setMessages(msgs);
-      } else {
-        setCurrentChatId(null);
-        setMessages([]);
+      // If deleted is current chat, select next or clear
+      if (state.currentChatId === id) {
+        const remainingChats = state.chatHistory.filter((chat) => chat.id !== id);
+        if (remainingChats.length > 0) {
+          const nextChat = remainingChats[0];
+          dispatch({ type: 'SET_CURRENT_CHAT', payload: nextChat.id });
+          dispatch({ type: 'SET_MESSAGES', payload: loadMessages(nextChat.id) });
+        } else {
+          dispatch({ type: 'SET_CURRENT_CHAT', payload: null });
+          dispatch({ type: 'SET_MESSAGES', payload: [] });
+        }
       }
-    }
-  };
+    },
+    [state.currentChatId, state.chatHistory]
+  );
 
-
-  const handleSuggestionClick = (text: string) => {
+  const handleSuggestionClick = useCallback((text: string) => {
     const newMsg: Message = {
       id: Date.now().toString(),
       text,
       sender: 'user',
       timestamp: new Date(),
     };
-    setMessages(prev => [...prev, newMsg]);
-  };
+    dispatch({ type: 'SET_MESSAGES', payload: [...state.messages, newMsg] });
+  }, [state.messages]);
 
-  const handleSend = (text: string) => {
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      text,
-      sender: 'user',
-      timestamp: new Date(),
-    };
+  const handleSend = useCallback(
+    (text: string) => {
+      if (!text.trim()) return;
 
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
-    setIsTyping(true);
-
-    // ✅ Update chat title if it's the first user message
-    if (currentChatId && messages.length === 0) {
-      setChatHistory(prev =>
-        prev.map(chat =>
-          chat.id === currentChatId && chat.title === 'New Chat'
-            ? {
-              ...chat,
-              title: text.length > 30 ? text.slice(0, 30) + '...' : text,
-            }
-            : chat
-        )
-      );
-    }
-
-    setTimeout(() => {
-      const botMsg: Message = {
-        id: Date.now().toString() + '_bot',
-        text: 'Thanks for your message. We’ll get back shortly.',
-        sender: 'bot',
+      const userMsg: Message = {
+        id: Date.now().toString(),
+        text,
+        sender: 'user',
         timestamp: new Date(),
       };
 
-      const finalMessages = [...updatedMessages, botMsg];
-      setMessages(finalMessages);
-      setIsTyping(false);
+      const updatedMessages = [...state.messages, userMsg];
+      dispatch({ type: 'SET_MESSAGES', payload: updatedMessages });
+      dispatch({ type: 'SET_TYPING', payload: true });
 
-      // ✅ Update last message in sidebar
-      if (currentChatId) {
-        const last = finalMessages[finalMessages.length - 1];
-        setChatHistory(prev =>
-          prev.map(chat =>
-            chat.id === currentChatId
-              ? {
-                ...chat,
-                lastMessage: `${last.sender === 'user' ? 'You' : 'Bot'}: ${last.text}`,
-                timestamp: new Date(),
-              }
-              : chat
-          )
-        );
+      // Update title if default
+      if (state.currentChatId && state.messages.length === 0) {
+        const newTitle = text.length > 30 ? text.slice(0, 30) + '...' : text;
+        dispatch({
+          type: 'UPDATE_CHAT_TITLE',
+          payload: { id: state.currentChatId, title: newTitle },
+        });
       }
-    }, 1500);
-  };
 
+      setTimeout(() => {
+        const botMsg: Message = {
+          id: Date.now().toString() + '_bot',
+          text: 'Thanks for your message. We’ll get back shortly.',
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+
+        const finalMessages = [...updatedMessages, botMsg];
+        dispatch({ type: 'SET_MESSAGES', payload: finalMessages });
+        dispatch({ type: 'SET_TYPING', payload: false });
+
+        if (state.currentChatId) {
+          dispatch({
+            type: 'UPDATE_CHAT_LAST_MESSAGE',
+            payload: {
+              id: state.currentChatId,
+              lastMessage: `${botMsg.sender === 'user' ? 'You' : 'Bot'}: ${botMsg.text}`,
+              timestamp: new Date(),
+            },
+          });
+        }
+      }, 1500);
+    },
+    [state.messages, state.currentChatId]
+  );
 
   return (
-    <div className="max-h-screen min-h-[100dvh] bg-background text-foreground flex">
+    <div className="max-h-screen min-h-[100dvh] bg-background text-foreground flex overflow-hidden">
       <ChatSidebar
-        isSidebarOpen={isSidebarOpen}
-        setIsSidebarOpen={setIsSidebarOpen}
-        chatHistory={chatHistory}
-        currentChatId={currentChatId}
+        isSidebarOpen={state.isSidebarOpen}
+        setIsSidebarOpen={(open) => dispatch({ type: 'SET_SIDEBAR_OPEN', payload: open })}
+        chatHistory={state.chatHistory}
+        currentChatId={state.currentChatId}
         createNewChat={createNewChat}
         loadChat={loadChat}
         deleteChat={deleteChat}
-        isSidebarCollapsed={isSidebarCollapsed}
-        setIsSidebarCollapsed={setIsSidebarCollapsed}
+        isSidebarCollapsed={state.isSidebarCollapsed}
+        setIsSidebarCollapsed={(collapse) => dispatch({ type: 'SET_SIDEBAR_COLLAPSED', payload: collapse })}
       />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <ChatHeader
-          setIsSidebarOpen={setIsSidebarOpen}
+          setIsSidebarOpen={(open) => dispatch({ type: 'SET_SIDEBAR_OPEN', payload: open })}
           showBackButton={true}
           onBack={() => router.push('/')}
         />
 
         <ChatMessagesContainer
-          messages={messages}
+          messages={state.messages}
           onSuggestionClick={handleSuggestionClick}
-          isTyping={isTyping}
+          isTyping={state.isTyping}
         />
 
         <ChatInput onSend={handleSend} />
       </div>
 
-      {isSidebarOpen && (
+      {/* Mobile backdrop */}
+      {state.isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-40 z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
+          onClick={() => dispatch({ type: 'SET_SIDEBAR_OPEN', payload: false })}
+          aria-hidden="true"
         />
       )}
     </div>

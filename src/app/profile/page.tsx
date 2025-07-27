@@ -1,6 +1,10 @@
-'use client'
-import React, { useState } from 'react';
-import { User, Mail, Phone, Calendar, MapPin, Edit3, Save, X, Camera, Shield, Activity, Heart, Clock } from 'lucide-react';
+'use client';
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import {
+    User, Mail, Phone, Calendar, MapPin,
+    Edit3, Save, X, Camera, Shield,
+    Activity, Heart, Clock
+} from 'lucide-react';
 import Image from 'next/image';
 
 interface UserProfile {
@@ -48,23 +52,23 @@ const Profile: React.FC = () => {
     });
     const [editedProfile, setEditedProfile] = useState<UserProfile>(profile);
 
-    // Fetch user data on component mount
-    React.useEffect(() => {
+    // New state to hold selected profile image file and preview URL
+    const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+    const [profileImagePreview, setProfileImagePreview] = useState<string>('');
+
+    useEffect(() => {
         const fetchUserData = async () => {
             try {
                 setFetchingData(true);
                 const response = await fetch('/api/auth/me', {
                     method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                 });
 
                 if (response.ok) {
                     const userDetails = await response.json();
                     const userData = userDetails.user;
-                    // Map the API response to our profile structure
                     const mappedProfile: UserProfile = {
                         id: userData.id || '',
                         firstname: userData.firstname || userData.name?.split(' ')[0] || '',
@@ -84,20 +88,19 @@ const Profile: React.FC = () => {
                             reminders: userData.preferences?.reminders ?? false,
                         },
                     };
-
                     setProfile(mappedProfile);
                     setEditedProfile(mappedProfile);
-                } else if (response.status === 401) {
-                    // Handle unauthorized access - redirect to login
-                    console.error('User not authenticated');
-                    // You might want to redirect to login page here
-                    // router.push('/login');
+                    setProfileImagePreview(mappedProfile.avatar);
                 } else {
-                    throw new Error('Failed to fetch user data');
+                    if (response.status === 401) {
+                        console.error('User not authenticated');
+                        // Optionally redirect to login
+                    } else {
+                        throw new Error('Failed to fetch user data');
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
-                // Handle error (show toast, etc.)
             } finally {
                 setFetchingData(false);
             }
@@ -108,55 +111,97 @@ const Profile: React.FC = () => {
 
     const handleEdit = () => {
         setEditedProfile(profile);
+        setProfileImagePreview(profile.avatar);
+        setProfileImageFile(null);
         setEditing(true);
+    };
+
+    // Handle file selection and create preview URL
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setProfileImageFile(e.target.files[0]);
+            setProfileImagePreview(URL.createObjectURL(e.target.files[0]));
+        }
     };
 
     const handleSave = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/auth/updateDetails', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    firstname: editedProfile.firstname,
-                    lastname: editedProfile.lastname,
-                    name: `${editedProfile.firstname} ${editedProfile.lastname}`.trim(),
-                    email: editedProfile.email,
-                    phone: editedProfile.phone,
-                    dateOfBirth: editedProfile.dateOfBirth,
-                    location: editedProfile.location,
-                    preferences: editedProfile.preferences,
-                }),
-            });
+            // If user selected a new image file, send FormData; else send JSON
+            let response: Response;
+
+            if (profileImageFile) {
+                const formData = new FormData();
+
+                formData.append('profileImage', profileImageFile);
+
+                // Append other profile fields, convert booleans to strings for form-data
+                formData.append('firstname', editedProfile.firstname);
+                formData.append('lastname', editedProfile.lastname);
+                formData.append('name', `${editedProfile.firstname} ${editedProfile.lastname}`.trim());
+                formData.append('email', editedProfile.email);
+                formData.append('phone', editedProfile.phone);
+                formData.append('dateOfBirth', editedProfile.dateOfBirth);
+                formData.append('location', editedProfile.location);
+
+                // Append preferences as JSON string
+                formData.append('preferences', JSON.stringify(editedProfile.preferences));
+
+                response = await fetch('/api/auth/updateDetails', {
+                    method: 'PUT',
+                    credentials: 'include',
+                    body: formData,
+                    // IMPORTANT: DO NOT set Content-Type header when sending FormData!
+                });
+            } else {
+                response = await fetch('/api/auth/updateDetails', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        firstname: editedProfile.firstname,
+                        lastname: editedProfile.lastname,
+                        name: `${editedProfile.firstname} ${editedProfile.lastname}`.trim(),
+                        email: editedProfile.email,
+                        phone: editedProfile.phone,
+                        dateOfBirth: editedProfile.dateOfBirth,
+                        location: editedProfile.location,
+                        preferences: editedProfile.preferences,
+                    }),
+                });
+            }
 
             if (response.ok) {
-                const updatedProfile = await response.json();
+                const updated = await response.json();
+                const updatedProfile = updated.user || updated;
 
-                // Update the profile with the response data
                 const mappedProfile: UserProfile = {
                     ...editedProfile,
-                    id: updatedProfile.id || editedProfile.id,
+                    id: updatedProfile.id || updatedProfile._id || editedProfile.id,
                     firstname: updatedProfile.firstname || editedProfile.firstname,
                     lastname: updatedProfile.lastname || editedProfile.lastname,
                     email: updatedProfile.email || editedProfile.email,
                     phone: updatedProfile.phone || editedProfile.phone,
                     dateOfBirth: updatedProfile.dateOfBirth || editedProfile.dateOfBirth,
                     location: updatedProfile.location || editedProfile.location,
-                    avatar: updatedProfile.avatar || editedProfile.avatar,
+                    avatar: updatedProfile.avatar || updatedProfile.profileImage || editedProfile.avatar,
+                    joinDate: updatedProfile.joinDate || updatedProfile.createdAt || editedProfile.joinDate,
+                    lastActive: updatedProfile.lastActive || updatedProfile.updatedAt || editedProfile.lastActive,
+                    healthScore: updatedProfile.healthScore ?? editedProfile.healthScore,
+                    consultations: updatedProfile.consultations ?? editedProfile.consultations,
                     preferences: updatedProfile.preferences || editedProfile.preferences,
                 };
 
                 setProfile(mappedProfile);
+                setEditedProfile(mappedProfile);
+                setProfileImagePreview(mappedProfile.avatar);
+                setProfileImageFile(null);
                 setEditing(false);
             } else {
                 throw new Error('Failed to update profile');
             }
         } catch (error) {
             console.error('Error updating profile:', error);
-            // Handle error (show toast notification, etc.)
             alert('Failed to update profile. Please try again.');
         } finally {
             setLoading(false);
@@ -165,13 +210,15 @@ const Profile: React.FC = () => {
 
     const handleCancel = () => {
         setEditedProfile(profile);
+        setProfileImagePreview(profile.avatar);
+        setProfileImageFile(null);
         setEditing(false);
     };
 
     const handleInputChange = <K extends keyof UserProfile>(field: K, value: UserProfile[K]) => {
         setEditedProfile(prev => ({
             ...prev,
-            [field]: value
+            [field]: value,
         }));
     };
 
@@ -180,8 +227,8 @@ const Profile: React.FC = () => {
             ...prev,
             preferences: {
                 ...prev.preferences,
-                [preference]: !prev.preferences[preference]
-            }
+                [preference]: !prev.preferences[preference],
+            },
         }));
     };
 
@@ -195,14 +242,12 @@ const Profile: React.FC = () => {
     return (
         <div className="min-h-screen py-4 sm:py-8 px-4 sm:px-6 lg:px-8 mt-20 fade-in" style={{ backgroundColor: 'rgb(var(--background))' }}>
             <div className="max-w-7xl mx-auto">
-                {/* Loading State */}
                 {fetchingData ? (
                     <div className="flex items-center justify-center min-h-screen">
                         <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{ borderColor: 'rgb(var(--primary))' }}></div>
                     </div>
                 ) : (
                     <>
-                        {/* Header */}
                         <div className="rounded-xl shadow-lg overflow-hidden mb-6 sm:mb-8" style={{ backgroundColor: 'rgb(var(--background))' }}>
                             <div className="h-32 sm:h-40 relative" style={{ background: 'linear-gradient(to right, rgb(var(--primary)), rgb(var(--accent)))' }}>
                                 <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
@@ -210,10 +255,7 @@ const Profile: React.FC = () => {
                                         <button
                                             onClick={handleEdit}
                                             className="px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md text-sm hover:opacity-90"
-                                            style={{
-                                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                                                color: 'white'
-                                            }}
+                                            style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', color: 'white' }}
                                         >
                                             <Edit3 className="h-4 w-4" />
                                             <span>Edit Profile</span>
@@ -224,10 +266,7 @@ const Profile: React.FC = () => {
                                                 onClick={handleSave}
                                                 disabled={loading}
                                                 className="px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-colors flex items-center space-x-2 shadow-md disabled:opacity-50 text-sm"
-                                                style={{
-                                                    backgroundColor: 'rgb(var(--primary))',
-                                                    color: 'rgb(var(--primary-foreground))'
-                                                }}
+                                                style={{ backgroundColor: 'rgb(var(--primary))', color: 'rgb(var(--primary-foreground))' }}
                                             >
                                                 <Save className="h-4 w-4" />
                                                 <span>{loading ? 'Saving...' : 'Save'}</span>
@@ -244,16 +283,18 @@ const Profile: React.FC = () => {
                                     )}
                                 </div>
                             </div>
-
                             <div className="px-6 sm:px-8 pb-6 sm:pb-8 text-white" style={{ backgroundColor: 'rgb(30, 41, 59)' }}>
                                 <div className="flex flex-col sm:flex-row items-center sm:items-end space-y-4 sm:space-y-0 sm:space-x-6 -mt-16 sm:-mt-20">
                                     <div className="relative flex-shrink-0">
                                         <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'rgb(71, 85, 105)' }}>
-                                            {profile.avatar ? (
+                                            {profileImagePreview ? (
                                                 <Image
-                                                    src={profile?.avatar}
+                                                    src={profileImagePreview}
                                                     alt="Profile"
                                                     className="w-full h-full object-cover"
+                                                    width={128}
+                                                    height={128}
+                                                    unoptimized // Optional: remove if you want Next.js optimization
                                                 />
                                             ) : (
                                                 <div className="text-white text-2xl sm:text-4xl font-bold">
@@ -262,15 +303,27 @@ const Profile: React.FC = () => {
                                             )}
                                         </div>
                                         {editing && (
-                                            <button
-                                                className="absolute bottom-2 right-2 p-2 text-white rounded-full hover:opacity-90 transition-colors shadow-md"
-                                                style={{ backgroundColor: 'rgb(var(--primary))' }}
-                                            >
-                                                <Camera className="h-4 w-4" />
-                                            </button>
+                                            <>
+                                                {/* Hidden file input */}
+                                                <input
+                                                    id="profileImageInput"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleFileChange}
+                                                    className="hidden"
+                                                />
+                                                {/* Button triggers file input */}
+                                                <label
+                                                    htmlFor="profileImageInput"
+                                                    className="absolute bottom-2 right-2 p-2 text-white rounded-full hover:opacity-90 transition-colors shadow-md cursor-pointer"
+                                                    style={{ backgroundColor: 'rgb(var(--primary))' }}
+                                                    title="Change profile image"
+                                                >
+                                                    <Camera className="h-4 w-4" />
+                                                </label>
+                                            </>
                                         )}
                                     </div>
-
                                     <div className="text-center sm:text-left flex-1 min-w-0">
                                         <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">
                                             {fullName || 'User Name'}
@@ -292,7 +345,6 @@ const Profile: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
                             {/* Personal Information */}
                             <div className="xl:col-span-2 space-y-6 sm:space-y-8">
@@ -303,6 +355,7 @@ const Profile: React.FC = () => {
                                     </h2>
 
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* First Name */}
                                         <div>
                                             <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>First Name</label>
                                             {editing ? (
@@ -327,7 +380,7 @@ const Profile: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
-
+                                        {/* Last Name */}
                                         <div>
                                             <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>Last Name</label>
                                             {editing ? (
@@ -352,7 +405,7 @@ const Profile: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
-
+                                        {/* Email Address */}
                                         <div>
                                             <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>Email Address</label>
                                             {editing ? (
@@ -377,7 +430,7 @@ const Profile: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
-
+                                        {/* Phone */}
                                         <div>
                                             <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>Phone Number</label>
                                             {editing ? (
@@ -402,7 +455,7 @@ const Profile: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
-
+                                        {/* DOB */}
                                         <div>
                                             <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>Date of Birth</label>
                                             {editing ? (
@@ -426,7 +479,7 @@ const Profile: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
-
+                                        {/* Location */}
                                         <div>
                                             <label className="block text-sm font-medium mb-2" style={{ color: 'rgb(var(--muted-foreground))' }}>Location</label>
                                             {editing ? (
@@ -453,7 +506,6 @@ const Profile: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-
                                 {/* Privacy Preferences */}
                                 <div className="rounded-xl shadow-lg p-6 sm:p-8" style={{ backgroundColor: 'rgb(var(--background))' }}>
                                     <h2 className="text-xl sm:text-2xl font-bold mb-6 flex items-center" style={{ color: 'rgb(var(--foreground))' }}>
@@ -496,7 +548,6 @@ const Profile: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-
                             {/* Health Stats Sidebar */}
                             <div className="space-y-6 sm:space-y-8">
                                 <div className="rounded-xl shadow-lg p-6" style={{ backgroundColor: 'rgb(var(--background))' }}>
@@ -553,12 +604,11 @@ const Profile: React.FC = () => {
                                         <Heart className="h-5 w-5 mr-2 text-red-500" />
                                         Recent Activity
                                     </h3>
-
                                     <div className="space-y-3">
                                         {[
                                             { text: 'Health consultation', time: '2 hours ago', color: 'rgb(var(--primary))' },
                                             { text: 'Profile updated', time: '1 day ago', color: 'rgb(var(--accent))' },
-                                            { text: 'Health reminder set', time: '3 days ago', color: 'rgb(234, 179, 8)' }
+                                            { text: 'Health reminder set', time: '3 days ago', color: 'rgb(234, 179, 8)' },
                                         ].map((activity, index) => (
                                             <div key={index} className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: 'rgb(var(--muted))' }}>
                                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: activity.color }}></div>
@@ -573,18 +623,11 @@ const Profile: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div
-                                    className="rounded-xl shadow-lg p-6"
-                                    style={{ backgroundColor: 'rgb(var(--background))' }}
-                                >
-                                    <h3
-                                        className="text-lg font-bold mb-4 flex items-center"
-                                        style={{ color: 'rgb(var(--foreground))' }}
-                                    >
+                                <div className="rounded-xl shadow-lg p-6" style={{ backgroundColor: 'rgb(var(--background))' }}>
+                                    <h3 className="text-lg font-bold mb-4 flex items-center" style={{ color: 'rgb(var(--foreground))' }}>
                                         <Clock className="h-5 w-5 mr-2" style={{ color: 'rgb(var(--primary))' }} />
                                         Quick Actions
                                     </h3>
-
                                     <div className="space-y-3">
                                         <button
                                             className="w-full transition-colors rounded-lg p-3 text-left"
@@ -599,7 +642,6 @@ const Profile: React.FC = () => {
                                                 Book your next health check
                                             </p>
                                         </button>
-
                                         <button
                                             className="w-full transition-colors rounded-lg p-3 text-left"
                                             style={{
@@ -615,8 +657,6 @@ const Profile: React.FC = () => {
                                         </button>
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
                     </>
