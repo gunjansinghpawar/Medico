@@ -1,15 +1,34 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Menu, X, Stethoscope } from "lucide-react";
+import { Menu, X, Stethoscope, User } from "lucide-react";
 import ThemeToggleSwitch from "./ThemeToggleSwitch";
-import { useAuth } from "@/context/auth-context"; // adjust the path as needed
-import { User } from "lucide-react"; // you can replace it with an avatar/image
+import { useAuth } from "@/context/auth-context";
 import Link from "next/link";
-
+interface UserProfile {
+    id: string;
+    firstname: string;
+    lastname: string;
+    email: string;
+    phone: string;
+    dateOfBirth: string;
+    location: string;
+    avatar: string;
+    joinDate: string;
+    lastActive: string;
+    healthScore: number;
+    consultations: number;
+    preferences: {
+        notifications: boolean;
+        dataSharing: boolean;
+        reminders: boolean;
+    };
+}
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userDetails, setUserDetails] = useState<UserProfile | null>(null);
+  const { user, isLoggedIn } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -17,24 +36,29 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (isLoggedIn) {
+        try {
+          const res = await fetch("/api/auth/me");
+          if (!res.ok) throw new Error("Failed to fetch user details");
+          const data = await res.json();
+          setUserDetails(data);
+        } catch (err) {
+          console.error("User fetch error:", err);
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [isLoggedIn]);
+
   const navItems = [
-    {
-      label: "Home",
-      href: "/",
-    },
-    {
-      label: "Chatbot",
-      href: "/chat"
-    },
-    {
-      label: "About",
-      href: "/about",
-    },
+    { label: "Home", href: "/" },
+    { label: "Chatbot", href: "/chat" },
+    { label: "About", href: "/about" },
     { label: "Team", href: "/teams" },
-    {
-      label: "Blogs",
-      href: "/blog",
-    },
+    { label: "Blogs", href: "/blog" },
     {
       label: "News",
       href: "/news",
@@ -43,24 +67,22 @@ const Header = () => {
         { label: "Media Coverage", href: "/news/media-coverage" },
       ],
     },
-    {
-      label: "Contact",
-      href: "/contact",
-    },
-
+    { label: "Contact", href: "/contact" },
   ];
-  const { user, isLoggedIn } = useAuth();
+
+  const displayName = userDetails?.firstname || user?.firstname || "Profile";
 
   return (
     <header
-      className={`fixed top-0 left-0 z-50 w-full transition-all duration-300 ${isScrolled ? "backdrop-blur-md shadow-md" : ""}`}
+      className={`fixed top-0 left-0 z-50 w-full transition-all duration-300 ${
+        isScrolled ? "backdrop-blur-md shadow-md" : ""
+      }`}
       style={{
         background: "rgb(var(--background) / 0.85)",
         color: "rgb(var(--foreground))",
         borderBottom: "1px solid rgb(var(--border))",
       }}
     >
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-3 group">
@@ -70,9 +92,7 @@ const Header = () => {
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent group-hover:animate-pulse transition">
               Medico
-              <span className="text-base ml-1 text-muted-foreground font-medium">
-                AI
-              </span>
+              <span className="text-base ml-1 text-muted-foreground font-medium">AI</span>
             </h1>
             <p className="text-sm text-muted-foreground font-medium leading-none">
               Medical Healthbot
@@ -112,10 +132,10 @@ const Header = () => {
           {isLoggedIn ? (
             <Link
               href="/profile"
-              className="flex items-center gap-2 px-4 py-2  border-2 rounded-full text-sm font-semibold text-foreground hover:text-white hover:bg-black transition"
+              className="flex items-center gap-2 px-4 py-2 border-2 rounded-full text-sm font-semibold text-foreground hover:text-white hover:bg-black transition"
             >
-              <User className="w-5 h-5"/>
-              <span className="hidden sm:inline">{user?.firstname}</span>
+              <User className="w-5 h-5" />
+              <span className="hidden sm:inline">{displayName}</span>
             </Link>
           ) : (
             <>
@@ -136,7 +156,7 @@ const Header = () => {
           <ThemeToggleSwitch />
         </nav>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Toggle */}
         <div className="md:hidden flex items-center gap-2">
           <ThemeToggleSwitch />
           <button
@@ -151,13 +171,14 @@ const Header = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`fixed w-full min-h-[100vh] inset-0 z-40 flex flex-col justify-between bg-opacity-95 backdrop-blur-xl transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"}`}
+        className={`fixed w-full min-h-[100vh] inset-0 z-40 flex flex-col justify-between bg-opacity-95 backdrop-blur-xl transform transition-transform duration-300 ease-in-out ${
+          isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"
+        }`}
         style={{
           background: "rgb(var(--background) / 0.95)",
           color: "rgb(var(--foreground))",
         }}
       >
-
         {/* Top bar with close */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center space-x-3 group">
@@ -167,9 +188,7 @@ const Header = () => {
             <div>
               <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent group-hover:animate-pulse transition">
                 Medico
-                <span className="text-base ml-1 text-muted-foreground font-medium">
-                  AI
-                </span>
+                <span className="text-base ml-1 text-muted-foreground font-medium">AI</span>
               </h1>
               <p className="text-sm text-muted-foreground font-medium leading-none">
                 Medical Healthbot
@@ -185,7 +204,7 @@ const Header = () => {
           </button>
         </div>
 
-        {/* Menu content */}
+        {/* Mobile Nav Items */}
         <div className="flex-1 px-4 py-6 overflow-y-auto space-y-6 max-w-full">
           {navItems.map((item, idx) => (
             <div key={idx} className="space-y-2">
@@ -213,14 +232,13 @@ const Header = () => {
             </div>
           ))}
 
-
           {isLoggedIn ? (
             <Link
               href="/profile"
               className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-foreground hover:text-white hover:bg-gradient-to-r from-blue-600 to-green-600 transition"
             >
               <User className="w-5 h-5" />
-              <span className="hidden sm:inline">Profile</span>
+              <span className="hidden sm:inline">{displayName}</span>
             </Link>
           ) : (
             <>

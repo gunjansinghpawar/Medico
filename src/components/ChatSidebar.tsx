@@ -15,7 +15,7 @@ interface ChatHistoryItem {
   id: string;
   title: string;
   lastMessage: string;
-  timestamp: Date;
+  timestamp: string; // ISO string for serialization consistency
 }
 
 interface ChatSidebarProps {
@@ -115,6 +115,8 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               <ul className="space-y-2">
                 {chatHistory.map((chat) => {
                   const isActive = currentChatId === chat.id;
+                  // Parse timestamp safely for display
+                  const timestampDate = new Date(chat.timestamp);
                   return (
                     <li key={chat.id}>
                       <button
@@ -132,19 +134,15 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                         <div className="flex-1 min-w-0 text-left">
                           <div className="flex items-center space-x-2 mb-1">
                             <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                            <h3 className="text-sm font-medium truncate">
-                              {chat.title}
-                            </h3>
+                            <h3 className="text-sm font-medium truncate">{chat.title}</h3>
                           </div>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {chat.lastMessage}
-                          </p>
+                          <p className="text-xs text-muted-foreground truncate">{chat.lastMessage}</p>
                           <time
                             className="text-xs text-muted-foreground mt-1 block"
-                            dateTime={chat.timestamp.toISOString()}
-                            title={chat.timestamp.toLocaleString()}
+                            dateTime={chat.timestamp}
+                            title={timestampDate.toLocaleString()}
                           >
-                            {chat.timestamp.toLocaleString(undefined, {
+                            {timestampDate.toLocaleString(undefined, {
                               dateStyle: 'short',
                               timeStyle: 'short',
                             })}
@@ -186,9 +184,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   isSidebarCollapsed,
   setIsSidebarCollapsed,
 }) => {
-  const sidebarWidth = useMemo(() => (isSidebarCollapsed ? 80 : 320), [
-    isSidebarCollapsed,
-  ]);
+  const sidebarWidth = useMemo(() => (isSidebarCollapsed ? 80 : 320), [isSidebarCollapsed]);
 
   return (
     <>

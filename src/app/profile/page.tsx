@@ -134,8 +134,6 @@ const Profile: React.FC = () => {
                 const formData = new FormData();
 
                 formData.append('profileImage', profileImageFile);
-
-                // Append other profile fields, convert booleans to strings for form-data
                 formData.append('firstname', editedProfile.firstname);
                 formData.append('lastname', editedProfile.lastname);
                 formData.append('name', `${editedProfile.firstname} ${editedProfile.lastname}`.trim());
