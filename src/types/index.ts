@@ -9,6 +9,8 @@ export interface Message {
 }
 
 export interface User {
+  firstname: string;
+  lastname: string;
   _id?: string;
   email: string;
   password: string;

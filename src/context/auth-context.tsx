@@ -2,17 +2,10 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-
-interface UserType {
-  _id: string;
-  firstname: string;
-  lastname: string;
-  email: string;
-  // add other fields as needed
-}
+import { User } from '@/types';
 
 interface AuthContextType {
-  user: UserType | null;
+  user: User | null;
   isLoggedIn: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -26,14 +19,14 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<UserType | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch current user on mount
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get<{ user: UserType }>('/api/auth/me');
+        const res = await axios.get<{ user: User }>('/api/auth/me');
         if (res.data && res.data.user) {
           setUser(res.data.user);
         } else {

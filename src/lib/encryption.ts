@@ -1,6 +1,6 @@
 import CryptoJS from 'crypto-js';
 
-const ENCRYPTION_KEY = process.env.VITE_ENCRYPTION_KEY || 'default-key-change-in-production';
+const ENCRYPTION_KEY = process.env.NEXT_ENCRYPTION_KEY || 'default-key-change-in-production';
 
 export const encryptMessage = (message: string): string => {
   try {
