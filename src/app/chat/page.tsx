@@ -1,16 +1,21 @@
-'use client'
-import React from 'react';
-import { useAuth } from '@/context/auth-context';
-import { ChatContainer } from '@/components/ChatContainer';
-import { User } from '@/types';
+'use client';
 
-function Page() {
-  const { user } = useAuth();
-  if (!user) {
-    return <div>Loading...</div>;
-  }
-  const userData: User = user;
-  return <ChatContainer user={userData} />;
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function ChatRootPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      let sessionId = localStorage.getItem('chat_session_id');
+      if (!sessionId) {
+        sessionId = crypto.randomUUID(); // modern UUID generation
+        localStorage.setItem('chat_session_id', sessionId);
+      }
+      router.replace(`/chat/${sessionId}`);
+    }
+  }, [router]);
+
+  return <div>Loading your chat session...</div>;
 }
-
-export default Page;

@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { apiClient } from '@/lib/api';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { decryptMessage } from '@/lib/encryption';
 import { Message, User } from '@/types';
 import { MessageBubble } from './MessageBubble';
@@ -13,62 +12,78 @@ import { Heart } from 'lucide-react';
 
 interface ChatContainerProps {
   user: User;
+  sessionId?: string;
 }
 
-export const ChatContainer: React.FC<ChatContainerProps> = ({ user }) => {
+export const ChatContainer: React.FC<ChatContainerProps> = ({ user, sessionId: sessionIdProp }) => {
+
+  // Determine sessionId: first from props, else from localStorage, else generate new
+  const [sessionId] = useState<string>(() => {
+    if (sessionIdProp) return sessionIdProp;
+
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('chat_session_id');
+      if (stored) return stored;
+
+      const newId = uuidv4();
+      localStorage.setItem('chat_session_id', newId);
+      return newId;
+    }
+
+    // Fallback for SSR (should not usually be used in client component)
+    return uuidv4();
+  });
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [sessionId] = useState<string>(() => {
-    return typeof window !== 'undefined'
-      ? localStorage.getItem('chat_session_id') || uuidv4()
-      : uuidv4();
-  });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Sync sessionId to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('chat_session_id', sessionId);
+    if (typeof window !== 'undefined' && sessionId) {
+      localStorage.setItem('chat_session_id', sessionId);
+    }
   }, [sessionId]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // Scroll to bottom on message or typing changes
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const loadMessages = React.useCallback(async () => {
+  // Fetch chat messages and decrypt
+  const loadMessages = useCallback(async () => {
     try {
-      const response = await apiClient.getMessages(sessionId);
-      if (response.messages) {
-        const decryptedMessages = response.messages.map((msg: Message) => ({
+      const res = await fetch(`/api/chat/messages?sessionId=${encodeURIComponent(sessionId)}`);
+      if (!res.ok) throw new Error(`Failed to load messages: ${res.statusText}`);
+
+      const data = await res.json();
+
+      if (data.messages) {
+        const decrypted = data.messages.map((msg: Message) => ({
           ...msg,
-          content: msg.encrypted ? decryptMessage(msg.content) : msg.content,
+          content: msg.content,
           timestamp: new Date(msg.timestamp),
         }));
-        setMessages(decryptedMessages);
+        setMessages(decrypted);
       }
-    } catch (error) {
-      console.error('Failed to load messages:', error);
+    } catch (err) {
+      console.error('Failed to load messages:', err);
     }
   }, [sessionId]);
 
   useEffect(() => {
     loadMessages();
-  }, [sessionId, loadMessages]);
+  }, [loadMessages]);
 
-  const getChatResponse = async (userMessage: string) => {
-    try {
-      const response = await apiClient.getChatResponse(userMessage, sessionId);
-      return response.reply || 'Sorry, I had trouble processing your request.';
-    } catch (error) {
-      console.error('Error calling health bot:', error);
-      return 'I apologize, but I’m having trouble processing your request. Try again later.';
-    }
-  };
-
+  // Handle sending a new user message
   const handleSendMessage = async (content: string) => {
+    if (!sessionId) {
+      console.error('No sessionId available');
+      return;
+    }
+
+    // Optimistically add user's message
     const userMessage: Message = {
       _id: uuidv4(),
       content,
@@ -78,33 +93,43 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ user }) => {
     };
     setMessages((prev) => [...prev, userMessage]);
 
-    // Save user message to DB
-    try {
-      await apiClient.sendMessage(content, 'user', sessionId);
-    } catch (error) {
-      console.error('Failed to save user message:', error);
-    }
-
     setIsTyping(true);
 
     try {
-      const aiReply = await getChatResponse(content);
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: content, sessionId }),
+      });
 
-      const botMessage: Message = {
-        _id: uuidv4(),
-        content: aiReply,
-        role: 'assistant',
-        userId: 'bot',
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-
-      try {
-        await apiClient.sendMessage(aiReply, 'bot', sessionId);
-      } catch (error) {
-        console.error('Failed to save bot message:', error);
+      if (!res.ok) {
+        const errData = await res.json();
+        console.error('Failed to send message:', errData.message || res.statusText);
+        setIsTyping(false);
+        return;
       }
+
+      const data = await res.json();
+
+      if (data.history) {
+        const decryptedHistory = data.history.map((msg: Message) => ({
+          ...msg,
+          content: msg.encrypted ? decryptMessage(msg.content) : msg.content,
+          timestamp: new Date(msg.timestamp),
+        }));
+        setMessages(decryptedHistory);
+      } else if (data.reply) {
+        const botMessage: Message = {
+          _id: uuidv4(),
+          content: data.reply,
+          role: 'assistant',
+          userId: 'bot',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }
+    } catch (err) {
+      console.error('Error sending message:', err);
     } finally {
       setIsTyping(false);
     }
@@ -114,10 +139,10 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ user }) => {
     <div className="h-screen flex flex-col bg-gray-50">
       <ChatHeader userFirstName={user.firstname} userLastName={user.lastname} />
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 relative">
         {messages.length === 0 && (
-          <div className="text-center py-12">
-            <div className="bg-blue-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
+            <div className="bg-blue-50 rounded-full w-16 h-16 flex items-center justify-center mb-4">
               <Heart className="w-8 h-8 text-blue-500" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to HealthBot AI</h3>
@@ -128,12 +153,13 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ user }) => {
           </div>
         )}
 
-        {messages.map((message: Message) => (
-          <MessageBubble key={message._id} message={message} />
-        ))}
-
-        {isTyping && <TypingIndicator />}
-        <div ref={messagesEndRef} />
+        <div className="flex flex-col space-y-4 p-4 overflow-y-auto h-full">
+          {messages.map((message) => (
+            <MessageBubble key={message._id} message={message} />
+          ))}
+          {isTyping && <TypingIndicator />}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />

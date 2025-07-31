@@ -59,7 +59,7 @@ class ApiClient {
     try {
       responseBody = await response.json();
     } catch {
-      // Fallback for non-JSON responses
+      // Fallback for non-JSON responses or empty body
       responseBody = {};
     }
 
@@ -73,12 +73,20 @@ class ApiClient {
 
   // ---- API Methods ----
 
-  // GET messages by sessionId
+  /**
+   * Get chat messages by sessionId
+   * @param sessionId required session identifier
+   */
   async getMessages(sessionId: string): Promise<MessageResponse> {
-    return this.request<MessageResponse>(`/chat/messages?sessionId=${sessionId}`);
+    return this.request<MessageResponse>(`/chat/messages?sessionId=${encodeURIComponent(sessionId)}`);
   }
 
-  // POST a message (user or bot)
+  /**
+   * Send a message (user or bot) to the chat
+   * @param content message text
+   * @param role 'user' or 'bot'
+   * @param sessionId optional session identifier
+   */
   async sendMessage(
     content: string,
     role: "user" | "bot" = "user",
@@ -90,11 +98,15 @@ class ApiClient {
     });
   }
 
-  // POST user message and get bot response
-  async getChatResponse(message: string, sessionId?: string): Promise<ChatResponse> {
+  /**
+   * Send a user message and get AI chat response for the session
+   * @param userMessage message content from user
+   * @param sessionId optional session identifier
+   */
+  async getChatResponse(userMessage: string, sessionId?: string): Promise<ChatResponse> {
     return this.request<ChatResponse>("/chat", {
       method: "POST",
-      body: JSON.stringify({ message, sessionId }),
+      body: JSON.stringify({ message: userMessage, sessionId }),
     });
   }
 }
