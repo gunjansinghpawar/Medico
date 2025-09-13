@@ -8,11 +8,10 @@ import Footer from "@/components/Footer";
 import HideOnRoutes from "@/middleware/ConditionalChatInput";
 import ChatInputForHomepage from "@/components/ChatInputForHomepage";
 import GoToTop from "@/components/GoToTop";
-import CookieConsent from "@/components/CookieComponent";
-import { CookieProvider } from "@/context/CookieContext";
 import { ReactNode } from "react";
 import PageLoader from "@/components/PageLoader";
-import { AuthProvider } from "@/context/auth-context";
+import { ChatProvider } from "@/contexts/ChatContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -80,8 +79,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground transition-colors duration-200`}
       >
-        <AuthProvider>
-          <CookieProvider>
+    <AuthProvider>
+      <ChatProvider>
             <PageLoader />
 
             <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
@@ -106,7 +105,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 "/help-center",
                 "/cookie-policy",
               ]}
-            >
+              >
               <ChatInputForHomepage />
               <GoToTop />
             </HideOnRoutes>
@@ -114,9 +113,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
               <Footer />
             </HideOnRoutes>
-
-            <CookieConsent />
-          </CookieProvider>
+              </ChatProvider>
         </AuthProvider>
       </body>
     </html>

@@ -1,21 +1,14 @@
 'use client';
 
-import React, { useMemo, useCallback } from 'react';
-import {
-  Plus,
-  MessageSquare,
-  Trash2,
-  X,
-  Stethoscope,
-  Menu,
-} from 'lucide-react';
+import React, { useMemo, useCallback, useEffect } from 'react';
+import { Plus, MessageSquare, Trash2, X, Stethoscope, Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ChatHistoryItem {
   id: string;
   title: string;
   lastMessage: string;
-  timestamp: string; // ISO string for serialization consistency
+  timestamp: string; // ISO string
 }
 
 interface ChatSidebarProps {
@@ -23,6 +16,7 @@ interface ChatSidebarProps {
   setIsSidebarOpen: (open: boolean) => void;
   chatHistory: ChatHistoryItem[];
   currentChatId: string | null;
+  setCurrentChatId: (id: string) => void;
   createNewChat: () => void;
   loadChat: (id: string) => void;
   deleteChat: (id: string, e: React.MouseEvent) => void;
@@ -30,8 +24,7 @@ interface ChatSidebarProps {
   setIsSidebarCollapsed: (collapse: boolean) => void;
 }
 
-interface SidebarContentProps
-  extends Omit<ChatSidebarProps, 'isSidebarOpen'> {
+interface SidebarContentProps extends Omit<ChatSidebarProps, 'isSidebarOpen'> {
   sidebarWidth: number;
 }
 
@@ -41,6 +34,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   setIsSidebarOpen,
   chatHistory,
   currentChatId,
+  setCurrentChatId,
   createNewChat,
   loadChat,
   deleteChat,
@@ -48,6 +42,22 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   const toggleCollapse = useCallback(() => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   }, [isSidebarCollapsed, setIsSidebarCollapsed]);
+
+  // 🔹 Restore last selected chat from localStorage
+  useEffect(() => {
+    const savedChatId = localStorage.getItem('lastChatId');
+    if (savedChatId) {
+      setCurrentChatId(savedChatId);
+      loadChat(savedChatId);
+    }
+  }, [setCurrentChatId, loadChat]);
+
+  // 🔹 Persist current chat ID
+  useEffect(() => {
+    if (currentChatId) {
+      localStorage.setItem('lastChatId', currentChatId);
+    }
+  }, [currentChatId]);
 
   return (
     <div className="flex flex-col h-full relative bg-background text-foreground">
@@ -62,11 +72,19 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       </button>
 
       {isSidebarCollapsed ? (
-        // Collapsed sidebar UI
         <div className="flex flex-col items-center mt-6 space-y-4">
           <div className="bg-gradient-to-r from-blue-600 to-green-600 p-2 rounded-lg">
             <Stethoscope className="h-5 w-5 text-white" />
           </div>
+          <button
+            type="button"
+            onClick={createNewChat}
+            className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-green-700 transition-colors flex items-center justify-center space-x-2 select-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Create New Chat"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="font-medium">New Chat</span>
+          </button>
         </div>
       ) : (
         <>
@@ -90,16 +108,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 <X className="w-4 h-4" />
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={createNewChat}
-              className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-green-700 transition-colors flex items-center justify-center space-x-2 select-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label="Create New Chat"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="font-medium">New Chat</span>
-            </button>
           </header>
 
           {/* Chat History */}
@@ -113,22 +121,23 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               </p>
             ) : (
               <ul className="space-y-2">
-                {chatHistory.map((chat) => {
+                {chatHistory.map(chat => {
                   const isActive = currentChatId === chat.id;
-                  // Parse timestamp safely for display
                   const timestampDate = new Date(chat.timestamp);
+
                   return (
                     <li key={chat.id}>
                       <button
                         type="button"
-                        onClick={() => loadChat(chat.id)}
-                        className={`group w-full p-3 rounded-lg cursor-pointer transition-all duration-200 flex justify-between items-start
-                          ${
-                            isActive
-                              ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white shadow-md'
-                              : 'hover:bg-muted text-foreground'
-                          }
-                        `}
+                        onClick={() => {
+                          setCurrentChatId(chat.id);
+                          loadChat(chat.id);
+                        }}
+                        className={`group w-full p-3 rounded-lg cursor-pointer transition-all duration-200 flex justify-between items-start ${
+                          isActive
+                            ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white shadow-md'
+                            : 'hover:bg-muted text-foreground'
+                        }`}
                         aria-current={isActive ? 'page' : undefined}
                       >
                         <div className="flex-1 min-w-0 text-left">
@@ -151,7 +160,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 
                         <button
                           type="button"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             deleteChat(chat.id, e);
                           }}
@@ -178,6 +187,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   setIsSidebarOpen,
   chatHistory,
   currentChatId,
+  setCurrentChatId,
   createNewChat,
   loadChat,
   deleteChat,
@@ -226,6 +236,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               setIsSidebarOpen={setIsSidebarOpen}
               chatHistory={chatHistory}
               currentChatId={currentChatId}
+              setCurrentChatId={setCurrentChatId}
               createNewChat={createNewChat}
               loadChat={loadChat}
               deleteChat={deleteChat}
@@ -252,6 +263,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           setIsSidebarOpen={setIsSidebarOpen}
           chatHistory={chatHistory}
           currentChatId={currentChatId}
+          setCurrentChatId={setCurrentChatId}
           createNewChat={createNewChat}
           loadChat={loadChat}
           deleteChat={deleteChat}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Menu, X, Stethoscope, User } from "lucide-react";
 import ThemeToggleSwitch from "./ThemeToggleSwitch";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from '../contexts/AuthContext';
 import Link from "next/link";
 interface UserProfile {
     id: string;
@@ -28,7 +28,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userDetails, setUserDetails] = useState<UserProfile | null>(null);
-  const { user, isLoggedIn } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -38,7 +38,7 @@ const Header = () => {
 
   useEffect(() => {
     const fetchUserDetails = async () => {
-      if (isLoggedIn) {
+      if (isAuthenticated) {
         try {
           const res = await fetch("/api/auth/me");
           if (!res.ok) throw new Error("Failed to fetch user details");
@@ -51,7 +51,7 @@ const Header = () => {
     };
 
     fetchUserDetails();
-  }, [isLoggedIn]);
+  }, [isAuthenticated]);
 
   const navItems = [
     { label: "Home", href: "/" },
@@ -70,7 +70,7 @@ const Header = () => {
     { label: "Contact", href: "/contact" },
   ];
 
-  const displayName = userDetails?.firstname || user?.firstname || "Profile";
+  const displayName = userDetails?.firstname || user?.name || "Profile";
 
   return (
     <header
@@ -129,7 +129,7 @@ const Header = () => {
               )}
             </div>
           ))}
-          {isLoggedIn ? (
+          {isAuthenticated ? (
             <Link
               href="/profile"
               className="flex items-center gap-2 px-4 py-2 border-2 rounded-full text-sm font-semibold text-foreground hover:text-white hover:bg-black transition"
@@ -232,7 +232,7 @@ const Header = () => {
             </div>
           ))}
 
-          {isLoggedIn ? (
+          {isAuthenticated ? (
             <Link
               href="/profile"
               className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-foreground hover:text-white hover:bg-gradient-to-r from-blue-600 to-green-600 transition"
