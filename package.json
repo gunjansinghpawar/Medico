@@ -4,9 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run server\" \"next dev --turbopack\"",
+    "dev": "next dev --turbopack",
     "build": "next build",
-    "server": "nodemon backend/server.js",
     "start": "next start",
     "lint": "next lint"
   },

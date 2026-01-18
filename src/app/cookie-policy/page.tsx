@@ -1,9 +1,7 @@
 'use client';
 import React from 'react';
 import { Cookie, Settings, BarChart, Target, Wrench } from 'lucide-react';
-import { useCookies } from '@/context/CookieContext';
 const CookiePolicy: React.FC = () => {
-    const { openPreferences } = useCookies();
     return (
         <div className="min-h-screen w-full py-12 mt-20 px-4 bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
             <div className="max-w-7xl mx-auto">
@@ -107,7 +105,7 @@ const CookiePolicy: React.FC = () => {
                                     <li>Modify preferences anytime</li>
                                     <li>Understand cookie impact</li>
                                 </ul>
-                                <button className="mt-4 bg-[rgb(var(--accent))] text-white px-6 py-2 rounded cursor-pointer hover:brightness-90 transition" onClick={openPreferences}>
+                                <button className="mt-4 bg-[rgb(var(--accent))] text-white px-6 py-2 rounded cursor-pointer hover:brightness-90 transition" >
                                     Open Cookie Preferences
                                 </button>
                             </div>

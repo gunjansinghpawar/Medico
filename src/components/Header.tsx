@@ -1,57 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Menu, X, Stethoscope, User } from "lucide-react";
+import { Menu, X, Stethoscope } from "lucide-react";
 import ThemeToggleSwitch from "./ThemeToggleSwitch";
-import { useAuth } from '../contexts/AuthContext';
 import Link from "next/link";
-interface UserProfile {
-    id: string;
-    firstname: string;
-    lastname: string;
-    email: string;
-    phone: string;
-    dateOfBirth: string;
-    location: string;
-    avatar: string;
-    joinDate: string;
-    lastActive: string;
-    healthScore: number;
-    consultations: number;
-    preferences: {
-        notifications: boolean;
-        dataSharing: boolean;
-        reminders: boolean;
-    };
-}
+
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userDetails, setUserDetails] = useState<UserProfile | null>(null);
-  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      if (isAuthenticated) {
-        try {
-          const res = await fetch("/api/auth/me");
-          if (!res.ok) throw new Error("Failed to fetch user details");
-          const data = await res.json();
-          setUserDetails(data);
-        } catch (err) {
-          console.error("User fetch error:", err);
-        }
-      }
-    };
-
-    fetchUserDetails();
-  }, [isAuthenticated]);
 
   const navItems = [
     { label: "Home", href: "/" },
@@ -70,7 +32,6 @@ const Header = () => {
     { label: "Contact", href: "/contact" },
   ];
 
-  const displayName = userDetails?.firstname || user?.name || "Profile";
 
   return (
     <header
@@ -129,30 +90,6 @@ const Header = () => {
               )}
             </div>
           ))}
-          {isAuthenticated ? (
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 px-4 py-2 border-2 rounded-full text-sm font-semibold text-foreground hover:text-white hover:bg-black transition"
-            >
-              <User className="w-5 h-5" />
-              <span className="hidden sm:inline">{displayName}</span>
-            </Link>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="px-4 py-2 rounded-lg text-sm font-semibold border border-border hover:border-blue-500 text-blue-600 hover:text-white hover:bg-gradient-to-r from-blue-600 to-green-600 transition"
-              >
-                Login
-              </Link>
-              <Link
-                href="/signup"
-                className="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-blue-600 to-green-600 text-white hover:opacity-90 transition shadow-sm"
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
           <ThemeToggleSwitch />
         </nav>
 
@@ -232,30 +169,6 @@ const Header = () => {
             </div>
           ))}
 
-          {isAuthenticated ? (
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-foreground hover:text-white hover:bg-gradient-to-r from-blue-600 to-green-600 transition"
-            >
-              <User className="w-5 h-5" />
-              <span className="hidden sm:inline">{displayName}</span>
-            </Link>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="px-4 py-2 rounded-lg text-sm font-semibold border border-border hover:border-blue-500 text-blue-600 hover:text-white hover:bg-gradient-to-r from-blue-600 to-green-600 transition"
-              >
-                Login
-              </Link>
-              <Link
-                href="/signup"
-                className="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-blue-600 to-green-600 text-white hover:opacity-90 transition shadow-sm"
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
         </div>
       </div>
     </header>
