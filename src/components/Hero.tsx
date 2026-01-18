@@ -28,7 +28,7 @@ const Hero = () => {
           </p>
 
           <a
-            href="/chat"
+            href={`${process.env.NEXT_JS_CHATBOT_URL}`}
             className="inline-block bg-gradient-to-r from-blue-600 to-green-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:opacity-90 transition"
           >
             💬 Try Chatbot

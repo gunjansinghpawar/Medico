@@ -17,7 +17,7 @@ const Header = () => {
 
   const navItems = [
     { label: "Home", href: "/" },
-    { label: "Chatbot", href: "/chat" },
+    { label: "Chatbot", href: `${process.env.NEXT_JS_CHATBOT_URL}` },
     { label: "About", href: "/about" },
     { label: "Team", href: "/teams" },
     { label: "Blogs", href: "/blog" },
