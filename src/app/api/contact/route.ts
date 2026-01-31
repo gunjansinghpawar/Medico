@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
 // Helper function for consistent email design
-const generateEmailTemplate = (title: string, content: string, _footerText: string = 'The Medico AI Team') => `
+const generateEmailTemplate = (title: string, content: string) => `
 <!DOCTYPE html>
 <html>
 <head>
