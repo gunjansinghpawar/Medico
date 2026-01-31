@@ -5,8 +5,6 @@ import { Linkedin, Twitter, Mail, Award, Users, Heart, Globe, Code, Brain, Zap, 
 import Image from 'next/image';
 
 const Team = () => {
-    const [_activeTeam, _setActiveTeam] = useState('leadership');
-    const [_hoveredMember, setHoveredMember] = useState<number | null>(null);
 
     const leadership = [
         {
@@ -177,8 +175,6 @@ const Team = () => {
                     {leadership.map((leader, index) => (
                         <div
                             key={index}
-                            onMouseEnter={() => setHoveredMember(index)}
-                            onMouseLeave={() => setHoveredMember(null)}
                             className="group relative bg-card text-card-foreground border border-border rounded-3xl p-8 hover:border-blue-500/50 hover:shadow-lg transition-all duration-300 overflow-hidden"
                         >
                             {/* Background gradient on hover */}
