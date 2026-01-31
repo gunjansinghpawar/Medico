@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Linkedin, Twitter, Mail, Award, Users, Heart, Globe, Code, Brain, Zap, GitBranch, Palette, Database } from 'lucide-react';
+import { Linkedin, Twitter, Mail, Award, Users, Heart, Globe, Code, Brain, Zap, Palette } from 'lucide-react';
 import Image from 'next/image';
 
 const Team = () => {
-    const [activeTeam, setActiveTeam] = useState('leadership');
-    const [hoveredMember, setHoveredMember] = useState<number | null>(null);
+    const [_activeTeam, _setActiveTeam] = useState('leadership');
+    const [_hoveredMember, setHoveredMember] = useState<number | null>(null);
 
     const leadership = [
         {

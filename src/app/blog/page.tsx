@@ -52,7 +52,7 @@ const Blog = () => {
 
   // If no blogs, show some dummy or empty state. For now, let's keep the UI logic.
   // We can designate the first one as featured if available.
-  let featuredPost: BlogPost | undefined = allPosts.length > 0 ? { ...allPosts[0], featured: true } : undefined;
+  const featuredPost: BlogPost | undefined = allPosts.length > 0 ? { ...allPosts[0], featured: true } : undefined;
   
   // Exclude featured from grid if we singled it out
   const gridPosts = allPosts.length > 0 ? allPosts.slice(1) : [];

@@ -55,7 +55,7 @@ const Contact = () => {
       } else {
         setError(result.message || 'Something went wrong. Please try again.');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to send message. Please check your connection.');
     } finally {
       setIsLoading(false);

@@ -4,7 +4,7 @@
 import React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, User, Clock, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Calendar, User, Clock, ArrowLeft } from 'lucide-react';
 
 import { useGetNewsByIdQuery } from '@/store/api/apiSlice';
 import { MOCK_NEWS } from '@/data/mockData';
