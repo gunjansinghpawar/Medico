@@ -3,9 +3,14 @@
 import React, { useState } from 'react';
 import { Calendar, User, ArrowRight, Clock } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useGetBlogsQuery } from '@/store/api/apiSlice';
+import { IBlog, IAuthor } from '@/types';
+import BlogSkeleton from '@/components/skeletons/BlogSkeleton';
+import { MOCK_BLOGS } from '@/data/mockData';
 
 type BlogPost = {
-  id: number;
+  id: string; // Changed to string for MongoDB _id
   title: string;
   excerpt: string;
   author: string;
@@ -17,98 +22,50 @@ type BlogPost = {
 };
 
 const Blog = () => {
-  const featuredPost: BlogPost = {
-    id: 1,
-    title: "The Future of AI in Healthcare: Transforming Patient Care",
-    excerpt: "Explore how artificial intelligence is revolutionizing healthcare delivery...",
-    author: "Dr. Sarah Johnson",
-    date: "March 15, 2025",
-    readTime: "8 min read",
-    category: "AI & Healthcare",
-    image: "https://images.pexels.com/photos/3825527/pexels-photo-3825527.jpeg?auto=compress&cs=tinysrgb&w=800",
-    featured: true
+  const { data, isLoading, isError } = useGetBlogsQuery({ page: 1, limit: 50 });
+  const [selectedCategory, setSelectedCategory] = useState("All Posts");
+
+  if (isLoading) return <BlogSkeleton />;
+  // if (isError) return <div className="pt-24 text-center text-red-500">Failed to load blogs. Please try again later.</div>;
+
+  const blogs = (isError || !data?.blogs || data.blogs.length === 0) ? MOCK_BLOGS : data.blogs;
+  
+  // Helper to safely get author name
+  const getAuthorName = (author: string | IAuthor) => {
+    if (typeof author === 'string') return 'Unknown Author';
+    return author.name || 'Unknown Author';
   };
 
-  const allPosts: BlogPost[] = [
-    featuredPost,
-    {
-      id: 2,
-      title: "Understanding Symptoms: When to Seek Medical Attention",
-      excerpt: "Learn to distinguish between common symptoms...",
-      author: "Dr. Michael Chen",
-      date: "March 12, 2025",
-      readTime: "6 min read",
-      category: "Health Tips",
-      image: "https://images.pexels.com/photos/4386467/pexels-photo-4386467.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      id: 3,
-      title: "Mental Health in the Digital Age: Finding Balance",
-      excerpt: "Discover strategies for maintaining mental wellness...",
-      author: "Dr. Emily Rodriguez",
-      date: "March 10, 2025",
-      readTime: "7 min read",
-      category: "Mental Health",
-      image: "https://images.pexels.com/photos/3760067/pexels-photo-3760067.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      id: 4,
-      title: "Preventive Care: Your First Line of Defense",
-      excerpt: "Why regular check-ups and preventive measures are crucial...",
-      author: "Dr. James Wilson",
-      date: "March 8, 2025",
-      readTime: "5 min read",
-      category: "Prevention",
-      image: "https://images.pexels.com/photos/4386467/pexels-photo-4386467.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      id: 5,
-      title: "Nutrition Myths Debunked: Evidence-Based Eating",
-      excerpt: "Separating fact from fiction in the world of nutrition...",
-      author: "Dr. Lisa Thompson",
-      date: "March 5, 2025",
-      readTime: "9 min read",
-      category: "Nutrition",
-      image: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      id: 6,
-      title: "Exercise and Immunity: Building Your Body's Defenses",
-      excerpt: "How regular physical activity strengthens your immune system...",
-      author: "Dr. Robert Kim",
-      date: "March 3, 2025",
-      readTime: "6 min read",
-      category: "Fitness",
-      image: "https://images.pexels.com/photos/416778/pexels-photo-416778.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      id: 7,
-      title: "Sleep Science: Optimizing Your Rest for Better Health",
-      excerpt: "Understanding the science of sleep and practical tips...",
-      author: "Dr. Amanda Foster",
-      date: "March 1, 2025",
-      readTime: "8 min read",
-      category: "Sleep Health",
-      image: "https://images.pexels.com/photos/3771069/pexels-photo-3771069.jpeg?auto=compress&cs=tinysrgb&w=600"
-    }
-  ];
+  const mapBlogToPost = (blog: IBlog): BlogPost => ({
+    id: blog._id,
+    title: blog.title,
+    excerpt: blog.content.substring(0, 100) + '...', // Simple excerpt
+    author: getAuthorName(blog.authorId),
+    date: new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    readTime: `${Math.ceil(blog.content.length / 1000)} min read`, // Rough estimate
+    category: blog.tags[0] || 'Health',
+    image: blog.thumbnail || 'https://images.pexels.com/photos/3825527/pexels-photo-3825527.jpeg?auto=compress&cs=tinysrgb&w=800', // Fallback
+    featured: false // Logic for featured can be added later
+  });
+
+  const allPosts: BlogPost[] = blogs.map(mapBlogToPost);
+
+  // If no blogs, show some dummy or empty state. For now, let's keep the UI logic.
+  // We can designate the first one as featured if available.
+  let featuredPost: BlogPost | undefined = allPosts.length > 0 ? { ...allPosts[0], featured: true } : undefined;
+  
+  // Exclude featured from grid if we singled it out
+  const gridPosts = allPosts.length > 0 ? allPosts.slice(1) : [];
 
   const categories = [
     "All Posts",
-    "AI & Healthcare",
-    "Health Tips",
-    "Mental Health",
-    "Prevention",
-    "Nutrition",
-    "Fitness",
-    "Sleep Health"
+    ...Array.from(new Set(allPosts.map(p => p.category).filter(Boolean)))
   ];
 
-  const [selectedCategory, setSelectedCategory] = useState("All Posts");
-
   const filteredPosts = selectedCategory === "All Posts"
-    ? allPosts.filter(p => !p.featured)
-    : allPosts.filter(p => p.category === selectedCategory);
+    ? gridPosts
+    : gridPosts.filter(p => p.category === selectedCategory);
+
 
   return (
     <div className="pt-16 bg-background text-foreground fade-in">
@@ -142,7 +99,7 @@ const Blog = () => {
       </div>
 
       {/* Featured */}
-      {selectedCategory === "All Posts" && (
+      {selectedCategory === "All Posts" && featuredPost && (
         <div className="container mx-auto px-4 md:px-6 mb-16">
           <div className="rounded-3xl shadow-xl border border-border bg-card overflow-hidden">
             <div className="grid lg:grid-cols-2">
@@ -184,11 +141,13 @@ const Blog = () => {
                       </div>
                     </div>
                   </div>
-                  <button className="bg-gradient-to-r from-blue-600 to-green-600 text-white font-semibold px-6 py-2 rounded-xl hover:from-blue-700 hover:to-green-700 transition">
-                    <span className="flex items-center gap-2">
-                      Read More <ArrowRight className="w-4 h-4" />
-                    </span>
-                  </button>
+                  <Link href={`/blog/${featuredPost.id}`}>
+                    <button className="bg-gradient-to-r from-blue-600 to-green-600 text-white font-semibold px-6 py-2 rounded-xl hover:from-blue-700 hover:to-green-700 transition cursor-pointer">
+                      <span className="flex items-center gap-2">
+                        Read More <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -200,8 +159,8 @@ const Blog = () => {
       <div className="container mx-auto px-4 md:px-6 pb-16">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredPosts.map(post => (
-            <article key={post.id} className="bg-card rounded-2xl shadow-md border border-border hover:shadow-xl transition overflow-hidden group">
-              <div className="relative h-48 overflow-hidden">
+            <article key={post.id} className="bg-card rounded-2xl shadow-md border border-border hover:shadow-xl transition overflow-hidden group flex flex-col h-full">
+              <Link href={`/blog/${post.id}`} className="block relative h-48 overflow-hidden cursor-pointer">
                 <Image
                   src={post.image}
                   alt={post.title}
@@ -214,17 +173,19 @@ const Blog = () => {
                     {post.category}
                   </span>
                 </div>
-              </div>
-              <div className="p-5">
+              </Link>
+              <div className="p-5 flex flex-col flex-grow">
                 <div className="flex items-center text-muted-foreground text-sm mb-2">
                   <Clock className="w-4 h-4 mr-1" />
                   {post.readTime}
                 </div>
-                <h3 className="text-lg font-bold mb-2 group-hover:text-accent transition-colors">
-                  {post.title}
-                </h3>
-                <p className="text-muted-foreground mb-4">{post.excerpt}</p>
-                <div className="flex items-center justify-between">
+                <Link href={`/blog/${post.id}`} className="block mb-2">
+                  <h3 className="text-lg font-bold group-hover:text-accent transition-colors cursor-pointer">
+                    {post.title}
+                  </h3>
+                </Link>
+                <p className="text-muted-foreground mb-4 flex-grow">{post.excerpt}</p>
+                <div className="flex items-center justify-between mt-auto">
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-green-600 flex items-center justify-center">
                       <User className="w-4 h-4 text-white" />
@@ -237,9 +198,9 @@ const Blog = () => {
                       </div>
                     </div>
                   </div>
-                  <button className="text-accent hover:text-accent/80 text-sm font-medium flex items-center gap-1">
+                  <Link href={`/blog/${post.id}`} className="text-accent hover:text-accent/80 text-sm font-medium flex items-center gap-1 cursor-pointer">
                     Read <ArrowRight className="w-4 h-4" />
-                  </button>
+                  </Link>
                 </div>
               </div>
             </article>

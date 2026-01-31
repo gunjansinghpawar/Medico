@@ -10,6 +10,7 @@ import ChatInputForHomepage from "@/components/ChatInputForHomepage";
 import GoToTop from "@/components/GoToTop";
 import { ReactNode } from "react";
 import PageLoader from "@/components/PageLoader";
+import StoreProvider from "@/components/StoreProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -77,6 +78,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground transition-colors duration-200`}
       >
+        <StoreProvider>
             <PageLoader />
 
             <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
@@ -109,6 +111,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <HideOnRoutes hideOn={["/chat", "/signup", "/login"]}>
               <Footer />
             </HideOnRoutes>
+        </StoreProvider>
       </body>
     </html>
   );

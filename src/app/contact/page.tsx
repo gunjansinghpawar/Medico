@@ -22,11 +22,44 @@ const Contact = () => {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 5000);
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsSubmitted(true);
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          subject: '',
+          message: '',
+          category: 'general',
+        });
+        setTimeout(() => setIsSubmitted(false), 5000);
+      } else {
+        setError(result.message || 'Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      setError('Failed to send message. Please check your connection.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (
@@ -123,6 +156,14 @@ const Contact = () => {
                 </div>
               )}
 
+              {error && (
+                <div className="bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-100 rounded-xl p-4 mb-6 flex items-center space-x-3">
+                  <AlertCircle className="w-6 h-6" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <input
@@ -190,10 +231,20 @@ const Contact = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[rgb(0,132,255)] to-[rgb(34,197,94)] text-white font-semibold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-green-700 transition flex items-center justify-center"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-[rgb(0,132,255)] to-[rgb(34,197,94)] text-white font-semibold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-green-700 transition flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <Send className="w-5 h-5 mr-2" />
-                  Send Message
+                  {isLoading ? (
+                    <span className="flex items-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Sending...
+                    </span>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5 mr-2" />
+                      Send Message
+                    </>
+                  )}
                 </button>
               </form>
             </div>

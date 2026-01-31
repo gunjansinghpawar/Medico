@@ -24,10 +24,6 @@ const Header = () => {
     {
       label: "News",
       href: "/news",
-      subItems: [
-        { label: "Press Releases", href: "/news/press-releases" },
-        { label: "Media Coverage", href: "/news/media-coverage" },
-      ],
     },
     { label: "Contact", href: "/contact" },
   ];
@@ -72,22 +68,6 @@ const Header = () => {
                 {item.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-green-600 transition-all group-hover:w-full"></span>
               </Link>
-              {item.subItems && (
-                <div className="absolute left-0 mt-2 w-56 rounded-xl border border-border shadow-lg bg-background dark:bg-muted opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-200 z-50">
-                  <ul className="py-2">
-                    {item.subItems.map((subItem, sIdx) => (
-                      <li key={sIdx}>
-                        <Link
-                          href={subItem.href}
-                          className="block px-4 py-2 text-sm text-foreground hover:text-white hover:bg-gradient-to-r from-blue-600 to-green-600 rounded transition"
-                        >
-                          {subItem.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           ))}
           <ThemeToggleSwitch />
@@ -151,21 +131,6 @@ const Header = () => {
               >
                 {item.label}
               </Link>
-
-              {item.subItems && (
-                <ul className="pl-4 space-y-2">
-                  {item.subItems.map((subItem, sIdx) => (
-                    <li key={sIdx}>
-                      <Link
-                        href={subItem.href}
-                        className="block text-sm text-muted-foreground hover:text-primary transition"
-                      >
-                        ↳ {subItem.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
             </div>
           ))}
 
