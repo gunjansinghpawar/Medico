@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Linkedin, Twitter, Mail, Award, Users, Heart, Globe, Code, Brain, Zap, Palette } from 'lucide-react';
 import Image from 'next/image';
 
